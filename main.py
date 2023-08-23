@@ -30,6 +30,12 @@ class Kiwoom(QAxWidget):
         self.login_event_loop = QEventLoop()
         self.login_event_loop.exec() # 로그인 요청시까지 기다린다
 
+    def get_account_number(self): # 계좌 정보 가져오기
+        account_list = self.dynamicCall("GetLoginInfo(QString)", "ACCLIST")
+        account_nubmer = account_list.split(';')[0]
+        print("나의 계좌 번호:", account_number)
+        return account_number
+
 app = QApplication(sys.argv)
 Kiwoom = Kiwoom()
 app.exec()
