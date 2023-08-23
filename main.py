@@ -11,6 +11,7 @@ class Kiwoom(QAxWidget):
         self._make_kiwoom_instance() # 키움 증권 로그인 창 띄우기
         self._set_signal_slots() # 로그인용 슬롯 등록
         self._comm_connect()
+        self.get_account_number() # 계좌번호 가져오기
 
     def _make_kiwoom_instance(self):
         self.setControl("KHOPENAPI.KHOpenAPICtrl.1") # 키움 증권 로그인 API
@@ -32,7 +33,7 @@ class Kiwoom(QAxWidget):
 
     def get_account_number(self): # 계좌 정보 가져오기
         account_list = self.dynamicCall("GetLoginInfo(QString)", "ACCLIST")
-        account_nubmer = account_list.split(';')[0]
+        account_number = account_list.split(';')[0]
         print("나의 계좌 번호:", account_number)
         return account_number
 
