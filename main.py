@@ -1,59 +1,35 @@
-import sys 
-from PyQt5.QtWidgets import *
 from PyQt5.QAxContainer import *
-import pythoncom
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+import sys
+import time
+import pandas as pd
 
-
-class Kiwoom:
-    def __init__(self):
-        self.login = False
-        self.ocx = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
-        self.ocx.OnEventConnect.connect(self.OnEventConnect)
-        self.ocx.OnReceiveTrData.connect(self.OnReceiveTrData)
-
-    def CommConnect(self):
-        self.ocx.dynamicCall("CommConnect()")
-        while not self.login:
-            pythoncom.PumpWaitingMessages()
-
-    def OnReceiveTrData(self, screen, rqname, trcode, record, next):
-        print(screen, rqname, trcode, record, next)
-        per = self.GetCommData(trcode, rqname, 0, "PER")
-        pbr = self.GetCommData(trcode, rqname, 0, "PBR")
-        print(per, pbr)
-
-    def GetMasterCodeName(self, code):
-        name = self.ocx.dynamicCall("GetMasterCodeName(QString)", code)
-        return name
-
-    def OnEventConnect(self, err_code):
-        self.login = True
-
-    def SetInputValue(self, id, value):
-        self.ocx.dynamicCall("SetInputValue(QString, QString)", id, value)
-
-    def CommRqData(self, rqname, trcode, next, screen):
-        self.ocx.dynamicCall("CommRqData(QString, QString, int, QString)", rqname, trcode, next, screen)
-
-    def GetCommData(self, trcode, rqname, index, item):
-        data = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, index, item)
-        return data.strip()
-
-
-class MyWindow(QMainWindow):
-    def __init__(self):
+class Kiwoom(QAxWidget):
+    def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요
         super().__init__()
+        self._make_kiwoom_instance() # 키움 증권 로그인 창 띄우기
+        self._set_signal_slots() # 로그인용 슬롯 등록
+        self._comm_connect()
 
-        self.kiwoom = Kiwoom()
-        self.kiwoom.CommConnect()
+    def _make_kiwoom_instance(self):
+        self.setControl("KHOPENAPI.KHOpenAPICtrl.1") # 키움 증권 로그인 API
 
-        # tr request 
-        self.kiwoom.SetInputValue("종목코드", "005930")
-        self.kiwoom.CommRqData("opt10001", "opt10001", 0, "0101")
+    def _set_signal_slots(self): # slot 등록 함수, API 종류마다 slot 함수도 다르게 만들어줘야함
+        self.OnEventConnect.connect(self._login_slot) # connect시 _login_slot 슬롯 함수 호출
 
+    def _login_slot(self, err_code): # 로그인 응답 slot 함수
+        if err_code == 0:
+            print("Connected!")
+        else:
+            print("Not Connectedd...")
+        self.login_event_loop.exit()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MyWindow()
-    window.show()
-    app.exec_()
+    def _comm_connect(self):
+        self.dynamicCall("CommConnect()") # QAxWidget 클래스 내 함수
+        self.login_event_loop = QEventLoop()
+        self.login_event_loop.exec() # 로그인 요청시까지 기다린다
+
+app = QApplication(sys.argv)
+Kiwoom = Kiwoom()
+app.exec()
