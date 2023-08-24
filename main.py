@@ -22,7 +22,6 @@ class Kiwoom(QAxWidget):
         self.account_number = self.get_account_number() # 계좌번호 가져오기
         self.tr_event_loop = QEventLoop()
 
-
     # 키움 증권 로그인 API
     def _make_kiwoom_instance(self):
         self.setControl("KHOPENAPI.KHOpenAPICtrl.1") 
@@ -54,8 +53,7 @@ class Kiwoom(QAxWidget):
         else:
             self.isNext = False
 
-        if rqname == "opt10081": # 주식 가격 정보 가져오기
-            print()
+        if rqname == "opt10081_req": # 주식 가격 정보 가져오기
             total = []
             for i in range(cnt):
                 date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "일자").strip()
@@ -69,8 +67,6 @@ class Kiwoom(QAxWidget):
 
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
         time.sleep(1)
-
-
 
     def _comm_connect(self):
         self.dynamicCall("CommConnect()") # QAxWidget 클래스 내 함수
@@ -97,20 +93,20 @@ class Kiwoom(QAxWidget):
     
     # 가격 정보 가져오기
     def get_price(self, code):
-        self.dynamicCall("SetInputValue(QString, QString)", "종목 코드", code)
-        self.dynamicCall("SetInputValue(QString, QString)", "기준 일자", "20230823")
-        self.dynamicCall("SetInputValue(QString, QString)", "수정 주가 구분", "1")
-        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081", "opt10081", 0, "0020")
+        self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
+        # self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20230823")
+        self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", "1")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 0, "0020")
         self.tr_event_loop.exec_()
         time.sleep(1)
 
         total = self.tr_data
 
         while self.isNext:
-            self.dynamicCall("SetInputValue(QString, QString)", "종목 코드", code)
-            self.dynamicCall("SetInputValue(QString, QString)", "기준 일자", "20230823")
-            self.dynamicCall("SetInputValue(QString, QString)", "수정 주가 구분", "1")
-            self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081", "opt10081", 2, "0020")
+            self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
+            # self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20230823")
+            self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", "1")
+            self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 2, "0020")
             self.tr_event_loop.exec_()
             total += self.tr_data
             time.sleep(1)       
@@ -140,4 +136,4 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     samsung = Kiwoom.get_price("005930")
     print(samsung)
 
-    app.exec()
+    app.exec_()
