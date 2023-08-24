@@ -5,6 +5,8 @@ import sys
 import time
 import pandas as pd
 
+from win32 import Login
+
 class Kiwoom(QAxWidget):
     def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요
         super().__init__()
