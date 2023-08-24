@@ -4,7 +4,6 @@ import win32api
 import time
 import json
 
-# 클래스로 비밀번호 입력 만들어 놨으나, 스레드 분리 필요할 듯. 슬롯대기 스레드와 동시 작동 안함
 class Login():
     def __init__(self):
         super().__init__()
