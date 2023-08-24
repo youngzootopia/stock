@@ -39,7 +39,21 @@ class Kiwoom(QAxWidget):
         self.login_event_loop = QEventLoop()
         self.login_event_loop.exec() # 로그인 요청시까지 기다린다
 
+    # 종목 코드 가져오기: market_type: 0: 코스피, 10: 코스닥
+    def get_code_list_stok_market(self, market_type):
+        code_list = self.dynamicCall("GetCodeListByMarket(QString)", market_type)
+        code_list = code_list.split(';')[:-1]
+        return code_list
+
 if __name__ == '__main__': # 중복 방지를 위해 사용
     app = QApplication(sys.argv)
     Kiwoom = Kiwoom()
+
+    kospi_list = Kiwoom.get_code_list_stok_market("0")
+
+    print("코스피", kospi_list)
+
     app.exec()
+
+    
+
