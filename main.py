@@ -6,13 +6,20 @@ import time
 import pandas as pd
 
 from win32 import Login
+import multiprocessing
 
 class Kiwoom(QAxWidget):
     def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요
         super().__init__()
-        self._make_kiwoom_instance() # 키움 증권 로그인 창 띄우기
+        # 키움 증권 로그인 창이 뜨면, 비밀번호 입력 및 로그인할 프로세스
+        login_process = multiprocessing.Process(target = Login, name = "login process", args = "")
+        login_process.start()
+
+        # 키움 증권 로그인 창 띄우기
+        self._make_kiwoom_instance()
         self._set_signal_slots() # 로그인용 슬롯 등록
         self._comm_connect()
+
 
     def _make_kiwoom_instance(self):
         self.setControl("KHOPENAPI.KHOpenAPICtrl.1") # 키움 증권 로그인 API
@@ -32,6 +39,7 @@ class Kiwoom(QAxWidget):
         self.login_event_loop = QEventLoop()
         self.login_event_loop.exec() # 로그인 요청시까지 기다린다
 
-app = QApplication(sys.argv)
-Kiwoom = Kiwoom()
-app.exec()
+if __name__ == '__main__': # 중복 방지를 위해 사용
+    app = QApplication(sys.argv)
+    Kiwoom = Kiwoom()
+    app.exec()

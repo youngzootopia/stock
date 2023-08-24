@@ -5,8 +5,9 @@ import time
 import json
 
 # 클래스로 비밀번호 입력 만들어 놨으나, 스레드 분리 필요할 듯. 슬롯대기 스레드와 동시 작동 안함
-class Login:
+class Login():
     def __init__(self):
+        super().__init__()
         with open('./config/pass.json') as f:
             self.config = json.load(f)
         self.login()
@@ -47,7 +48,9 @@ class Login:
 
     def login(self):
         caption = "Open API Login"
-        hwnd = self.find_window(caption)
+        hwnd = 0
+        while hwnd == 0:
+            hwnd = self.find_window(caption)
 
         #edit_id = win32gui.GetDlgItem(hwnd, 0x3E8)
         edit_pass = win32gui.GetDlgItem(hwnd, 0x3E9)
