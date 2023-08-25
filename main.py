@@ -11,9 +11,10 @@ import multiprocessing
 class Kiwoom(QAxWidget):
     def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요
         super().__init__()
+        # 로그인 프로세스를 따로 띄웠으나, 계좌 비밀번호가 저장이 안돼 사용 X
         # 키움 증권 로그인 창이 뜨면, 비밀번호 입력 및 로그인할 프로세스
-        login_process = multiprocessing.Process(target = Login, name = "login process", args = "")
-        login_process.start()
+        # login_process = multiprocessing.Process(target = Login, name = "login process", args = "")
+        # login_process.start()
 
         # 키움 증권 로그인 창 띄우기
         self._make_kiwoom_instance()
@@ -64,6 +65,10 @@ class Kiwoom(QAxWidget):
                 volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "거래량").strip())
                 total.append([date, open, high, low, close, volume])
             self.tr_data = total
+        
+        elif rqname == "opw00001_req": # 예수금 가져오기
+            deposit = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "주문가능금액")
+            self.tr_data = int(deposit)
 
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
         time.sleep(1)
@@ -115,6 +120,16 @@ class Kiwoom(QAxWidget):
         df = df.drop_duplicates()
         df = df.sort_index()
         return df
+    
+    # 예수금 가져오기
+    def get_deposit(self):
+        self.dynamicCall("SetInputValue(QString, QString)", "계좌번호", self.account_number)
+        self.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "00")
+        self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00001_req", "opw00001", 0, "0004")
+        self.tr_event_loop.exec()
+        return self.tr_data
+
 
 if __name__ == '__main__': # 중복 방지를 위해 사용
     app = QApplication(sys.argv)
@@ -127,13 +142,15 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # print("코스닥", kospi_list)
 
     # 종목명 가져오기 예제
-    for kospi in kospi_list:
-        name = Kiwoom.get_code_name(kospi)
-        if name == "삼성전자":
-            print(kospi)
+    # for kospi in kospi_list:
+    #     name = Kiwoom.get_code_name(kospi)
+    #     if name == "삼성전자":
+    #         print(kospi)
 
     # 삼성전자 주식 가격 가져오기
-    samsung = Kiwoom.get_price("005930")
-    print(samsung)
+    # samsung = Kiwoom.get_price("005930")
+    # print(samsung)
+
+    print(Kiwoom.get_deposit())
 
     app.exec_()
