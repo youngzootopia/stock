@@ -24,6 +24,10 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # samsung = Kiwoom.get_price("005930")
     # print(samsung)
 
-    print(Kiwoom.get_deposit())
+    # 주식 잔고 가져오기
+    # print(Kiwoom.get_deposit())
+
+    samsung = Kiwoom.get_day_pricd("005930", '20230824')
+    print(samsung)
 
     app.exec_()

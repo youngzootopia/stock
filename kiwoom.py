@@ -66,6 +66,17 @@ class Kiwoom(QAxWidget):
             deposit = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "주문가능금액")
             self.tr_data = int(deposit)
 
+        elif rqname == "opt10086_req": # 일별 주식 가격 정보 가져오기
+            total = []
+            date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "날짜")
+            open = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "시가"))
+            high = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "고가"))
+            low = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "저가"))
+            close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종가"))
+            volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "거래량"))
+            total.append([date, open, high, low, close, volume])
+            self.tr_data = total
+
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
         time.sleep(1)
 
@@ -125,3 +136,19 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00001_req", "opw00001", 0, "0004")
         self.tr_event_loop.exec()
         return self.tr_data
+    
+    # 일별 주가 요청
+    def get_day_pricd(self, code, req_date):
+        self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
+        self.dynamicCall("SetInputValue(QString, QString)", "조회일자", req_date)
+        self.dynamicCall("SetInputValue(QString, QString)", "표시구분", "0")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10086_req", "opt10086", 0, "0006")
+        self.tr_event_loop.exec_()
+        time.sleep(1)
+
+        total = self.tr_data
+
+        df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume']).set_index("date")
+        df = df.drop_duplicates()
+        df = df.sort_index()
+        return df
