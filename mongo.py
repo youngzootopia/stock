@@ -24,5 +24,14 @@ class Mongo():
         try:
             self.client.admin.command('ping')
             print("Pinged your deployment. You successfully connected to MongoDB!")
+            self.db = self.client["stock"]
         except Exception as e:
             print(e)
+
+    def insert_price_many(self, df):
+        coll = self.db["price"]
+        print(df.to_json())
+        result = coll.insert_many(json.loads(df.T.to_json()).values())
+        # result = coll.insert_many(json.loads(df.T.to_json()).values())
+
+        print(result.inserted_ids)

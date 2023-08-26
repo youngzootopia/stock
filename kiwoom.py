@@ -68,7 +68,8 @@ class Kiwoom(QAxWidget):
 
         elif rqname == "opt10086_req": # 일별 주식 가격 정보 가져오기
             total = []
-            date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "날짜")
+            # date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "날짜")
+            date = '20230824'
             open = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "시가"))
             high = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "고가"))
             low = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "저가"))
@@ -123,7 +124,7 @@ class Kiwoom(QAxWidget):
             total += self.tr_data
             time.sleep(1)       
 
-        df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume']).set_index("date")
+        df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume'])
         df = df.drop_duplicates()
         df = df.sort_index()
         return df
@@ -138,7 +139,7 @@ class Kiwoom(QAxWidget):
         return self.tr_data
     
     # 일별 주가 요청
-    def get_day_pricd(self, code, req_date):
+    def get_day_price(self, code, req_date):
         self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
         self.dynamicCall("SetInputValue(QString, QString)", "조회일자", req_date)
         self.dynamicCall("SetInputValue(QString, QString)", "표시구분", "0")
@@ -148,7 +149,7 @@ class Kiwoom(QAxWidget):
 
         total = self.tr_data
 
-        df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume']).set_index("date")
+        df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume'])
         df = df.drop_duplicates()
         df = df.sort_index()
         return df
