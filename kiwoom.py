@@ -145,7 +145,7 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SetInputValue(QString, QString)", "표시구분", "0")
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10086_req", "opt10086", 0, "0006")
         self.tr_event_loop.exec_()
-        time.sleep(1)
+        time.sleep(5)
 
         total = self.tr_data
 
