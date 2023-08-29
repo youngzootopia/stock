@@ -111,7 +111,7 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", "1")
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 0, "0020")
         self.tr_event_loop.exec_()
-        time.sleep(1)
+        time.sleep(5)
 
         total = self.tr_data
 
@@ -122,7 +122,7 @@ class Kiwoom(QAxWidget):
             self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 2, "0020")
             self.tr_event_loop.exec_()
             total += self.tr_data
-            time.sleep(1)       
+            time.sleep(5)       
 
         df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume'])
         df = df.drop_duplicates()
