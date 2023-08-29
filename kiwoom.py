@@ -42,7 +42,7 @@ class Kiwoom(QAxWidget):
     # 연속 조회할 값의 유무,
     # 종목 코드, 기준 일자: 입력 안하면 최근일자, 수정 주가 구분: 1로 사용할 예정, TR 묶음 지정 네자리 숫자
     def _on_receive_tr_data(self, screen_no, rqname, trcode, record_name, next, v1, v2, v3, v4):
-        # print(screen_no, rqname, trcode, record_name, next)
+        print(screen_no, rqname, trcode, record_name, next)
         cnt = self.dynamicCall("GetRepeatCnt(QString, QString)", trcode, rqname)
 
         if next == "2":
@@ -111,7 +111,7 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", "1")
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 0, "0020")
         self.tr_event_loop.exec_()
-        time.sleep(5)
+        time.sleep(1)
 
         total = self.tr_data
 
@@ -122,7 +122,7 @@ class Kiwoom(QAxWidget):
             self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 2, "0020")
             self.tr_event_loop.exec_()
             total += self.tr_data
-            time.sleep(5)       
+            time.sleep(1)       
 
         df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume'])
         df = df.drop_duplicates()
