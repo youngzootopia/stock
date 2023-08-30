@@ -1,5 +1,6 @@
 from PyQt5.QAxContainer import *
 from PyQt5.QtCore import *
+from datetime import datetime
 
 import time
 import pandas as pd
@@ -127,6 +128,8 @@ class Kiwoom(QAxWidget):
         df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume'])
         df = df.drop_duplicates()
         df = df.sort_index()
+        # 적재 시간이 장 중일수도 있기 때문에 오늘치는 안가져옴,
+        df = df.drop(df.index[df['date'] == datetime.now().strftime("%Y%m%d")].tolist(), axis = 0)
         return df
     
     # 예수금 가져오기
