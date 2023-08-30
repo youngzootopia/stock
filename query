@@ -1,0 +1,13 @@
+// 날짜별 중복 있는 지?
+db.getCollection('price').aggregate(
+  [
+    {
+      $group: {
+        _id: { code: '$code', date: '$date' },
+        count: { $sum: 1 }
+      }
+    },
+    { $match: { count: { $gt: 1 } } }
+  ],
+  { maxTimeMS: 60000, allowDiskUse: true }
+);

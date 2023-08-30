@@ -12,7 +12,13 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     kospi_list = Kiwoom.get_code_list_stok_market("0")
     # kodak_list = Kiwoom.get_code_list_stok_market("10")
 
+    isNext = True
     for kospi in kospi_list:
+        if kospi == "002820":
+            isNext = False
+
+        if isNext:
+            continue    
         print(kospi)
         stock_price = Kiwoom.get_price(kospi)
 

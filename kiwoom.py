@@ -43,7 +43,7 @@ class Kiwoom(QAxWidget):
     # 연속 조회할 값의 유무,
     # 종목 코드, 기준 일자: 입력 안하면 최근일자, 수정 주가 구분: 1로 사용할 예정, TR 묶음 지정 네자리 숫자
     def _on_receive_tr_data(self, screen_no, rqname, trcode, record_name, next, v1, v2, v3, v4):
-        # print(screen_no, rqname, trcode, record_name, next)
+        print(screen_no, rqname, trcode, record_name, next)
         cnt = self.dynamicCall("GetRepeatCnt(QString, QString)", trcode, rqname)
 
         if next == "2":
