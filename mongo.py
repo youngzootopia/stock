@@ -35,3 +35,11 @@ class Mongo():
         # result = coll.insert_many(json.loads(df.T.to_json()).values())
 
         # print(result.inserted_ids)
+
+    def insert_price_one(self, df):
+        coll = self.db["price"]
+        # print(df.to_json())
+        result = coll.insert_one(json.loads(df.T.to_json()).values())
+        # result = coll.insert_many(json.loads(df.T.to_json()).values())
+
+        # print(result.inserted_ids)
