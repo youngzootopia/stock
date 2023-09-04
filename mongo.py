@@ -13,7 +13,7 @@ class Mongo():
         self.connect()
 
     def connect(self):
-        uri = "mongodb+srv://" + self.config['DEFAULT']['ATLAS_USERNAME'] + ":" + self.config['DEFAULT']['ATLAS_PASS'] + "@stockdb.fil8hwx.mongodb.net/?retryWrites=true&w=majority"
+        uri = "mongodb+srv://" + self.config['DEFAULT']['ATLAS_USERNAME'] + ":" + self.config['DEFAULT']['ATLAS_PASS'] + "@stockdb.1twllnw.mongodb.net/?retryWrites=true&w=majority"
 
         # Create a new client and connect to the server
         self.client = MongoClient(uri, tlsCAFile=certifi.where())
@@ -31,7 +31,7 @@ class Mongo():
     def insert_price_many(self, df):
         coll = self.db["price"]
         # print(df.to_json())
-        result = coll.insert_many(json.loads(df.T.to_json()).values())
+        result = coll.insert_many(json.loads(df.T.to_json()))
         # result = coll.insert_many(json.loads(df.T.to_json()).values())
 
         # print(result.inserted_ids)

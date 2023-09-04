@@ -1,6 +1,6 @@
 from PyQt5.QAxContainer import *
 from PyQt5.QtCore import *
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import time
 import pandas as pd
@@ -70,13 +70,12 @@ class Kiwoom(QAxWidget):
         elif rqname == "opt10086_req": # 일별 주식 가격 정보 가져오기
             total = []
             # date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "날짜")
-            date = '20230824'
             open = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "시가"))
             high = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "고가"))
             low = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "저가"))
             close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종가"))
             volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "거래량"))
-            total.append([date, open, high, low, close, volume])
+            total.append([open, high, low, close, volume])
             self.tr_data = total
 
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
@@ -126,10 +125,13 @@ class Kiwoom(QAxWidget):
             time.sleep(5)       
 
         df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume'])
+        df.insert(0, "code", code)
+        df.set_index(['code', 'date'], inplace = True)
         df = df.drop_duplicates()
         df = df.sort_index()
         # 적재 시간이 장 중일수도 있기 때문에 오늘치는 안가져옴,
-        df = df.drop(df.index[df['date'] == datetime.now().strftime("%Y%m%d")].tolist(), axis = 0)
+        # df.drop(df.index[df['date'] == datetime.now().strftime("%Y%m%d")].tolist(), axis = 0)
+        df = df.loc[(code, '20100101') : (code, (datetime.now() + timedelta(days = 1)).strftime("%Y%m%d"))]
         return df
     
     # 예수금 가져오기
@@ -152,7 +154,10 @@ class Kiwoom(QAxWidget):
 
         total = self.tr_data
 
-        df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume'])
+        df = pd.DataFrame(total, columns = ['open', 'high', 'low', 'close', 'volume'])
+        df.insert(0, "code", code)
+        df.insert(1, "date", req_date)
+        df.set_index(['code', 'date'], inplace = True)
         df = df.drop_duplicates()
         df = df.sort_index()
         return df
