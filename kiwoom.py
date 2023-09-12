@@ -68,14 +68,15 @@ class Kiwoom(QAxWidget):
             self.tr_data = int(deposit)
 
         elif rqname == "opt10086_req": # 일별 주식 가격 정보 가져오기
-            total = []
+            # total = []
             # date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "날짜")
             open = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "시가"))
             high = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "고가"))
             low = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "저가"))
             close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종가"))
             volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "거래량"))
-            total.append([open, high, low, close, volume])
+            # total.append([open, high, low, close, volume])
+            total = {'open': open, 'high': high, 'low': low, 'close': close, 'volume': volume }
             self.tr_data = total
 
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
@@ -154,10 +155,14 @@ class Kiwoom(QAxWidget):
 
         total = self.tr_data
 
-        df = pd.DataFrame(total, columns = ['open', 'high', 'low', 'close', 'volume'])
-        df.insert(0, "code", code)
-        df.insert(1, "date", req_date)
-        df.set_index(['code', 'date'], inplace = True)
-        df = df.drop_duplicates()
-        df = df.sort_index()
+        # df = pd.DataFrame(total, columns = ['open', 'high', 'low', 'close', 'volume'])
+        # df['_id'] = dict({'code': code, 'date': req_date})
+        # df.insert(0, "code", code)
+        # df.insert(1, "date", req_date)
+        # df.set_index(['code', 'date'], inplace = True)
+        # df = df.drop_duplicates()
+        # df = df.sort_index()
+
+        total['_id'] = {'code': code, 'date': req_date}
+        df = total
         return df
