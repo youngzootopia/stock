@@ -163,6 +163,6 @@ class Kiwoom(QAxWidget):
         # df = df.drop_duplicates()
         # df = df.sort_index()
 
-        total['_id'] = {'code': code, 'date': req_date}
+        total["_id"] = {"code": code, "date": req_date}
         df = total
         return df

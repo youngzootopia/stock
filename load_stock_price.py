@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import *
 import sys
 from kiwoom import Kiwoom
 from mongo import Mongo
+import json
 
 if __name__ == '__main__': # 중복 방지를 위해 사용
     app = QApplication(sys.argv)
@@ -19,9 +20,15 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     #     if stock_price.size > 0:
     #         stock_price.insert(0, "code", kospi)
     #         Mongo.insert_price_one(stock_price)
-
+    stock_list = []
     stock_price = Kiwoom.get_day_price('005930', '20230830')
-    print(stock_price)
+
+    stock_list.append(stock_price)
+    stock_list.append(stock_price)
+    # print(stock_list)
+
+    with open("daily_stock_list.json", "w") as json_file:
+        json.dump(stock_list, json_file, indent=4)
     # Mongo.insert_price_many(stock_price)
 
 

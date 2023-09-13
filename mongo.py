@@ -13,7 +13,7 @@ class Mongo():
         self.connect()
 
     def connect(self):
-        uri = "mongodb+srv://" + self.config['DEFAULT']['ATLAS_USERNAME'] + ":" + self.config['DEFAULT']['ATLAS_PASS'] + "@stockdb.1twllnw.mongodb.net/?retryWrites=true&w=majority"
+        uri = "mongodb+srv://" + self.config['DEFAULT']['ATLAS_USERNAME'] + ":" + self.config['DEFAULT']['ATLAS_PASS'] + "@stockdb.wbsygbk.mongodb.net/?retryWrites=true&w=majority"
 
         # Create a new client and connect to the server
         self.client = MongoClient(uri, tlsCAFile=certifi.where())
