@@ -14,22 +14,16 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # kodak_list = Kiwoom.get_code_list_stok_market("10")
 
     # 일별 적재
-    # for kospi in kospi_list:
-    #     print(kospi)
-    #     stock_price = Kiwoom.get_day_price(kospi, '20230830')
-    #     if stock_price.size > 0:
-    #         stock_price.insert(0, "code", kospi)
-    #         Mongo.insert_price_one(stock_price)
     stock_list = []
-    stock_price = Kiwoom.get_day_price('005930', '20230830')
-
-    stock_list.append(stock_price)
-    stock_list.append(stock_price)
-    # print(stock_list)
+    for kospi in kospi_list:
+        print(kospi)
+        stock_price = Kiwoom.get_day_price(kospi, '20230912')
+        if len(stock_price) > 0:
+            # Mongo.insert_price_one(stock_price)
+            stock_list.append(stock_price)
 
     with open("daily_stock_list.json", "w") as json_file:
         json.dump(stock_list, json_file, indent=4)
-    # Mongo.insert_price_many(stock_price)
 
 
     # 2010~20230901 일괄 적재
