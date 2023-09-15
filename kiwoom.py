@@ -51,16 +51,25 @@ class Kiwoom(QAxWidget):
         else:
             self.isNext = False
 
-        if rqname == "opt10081_req": # 주식 가격 정보 가져오기
+        if rqname == "opt10081_req": # 일괄 주식 가격 정보 가져오기
             total = []
+            code = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종목코드").strip()
+            
             for i in range(cnt):
                 date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "일자").strip()
+
+                if date < '20180101' or date == datetime.now().strftime("%Y%m%d"):
+                    continue
+                
                 open = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "시가").strip())
                 high = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "고가").strip())
                 low = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "저가").strip())
                 close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "현재가").strip())
                 volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "거래량").strip())
-                total.append([date, open, high, low, close, volume])
+
+                stock = {'open': open, 'high': high, 'low': low, 'close': close, 'volume': volume }
+                stock["_id"] = {"code": code, "date": date}
+                total.append(stock)
             self.tr_data = total
         
         elif rqname == "opw00001_req": # 예수금 가져오기
@@ -120,17 +129,9 @@ class Kiwoom(QAxWidget):
             self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 2, "0020")
             self.tr_event_loop.exec_()
             total += self.tr_data
-            time.sleep(5)       
+            time.sleep(5)
 
-        # df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume'])
-        # df.insert(0, "code", code)
-        # df.set_index(['code', 'date'], inplace = True)
-        # df = df.drop_duplicates()
-        # df = df.sort_index()
-        # 적재 시간이 장 중일수도 있기 때문에 오늘치는 안가져옴,
-        # df.drop(df.index[df['date'] == datetime.now().strftime("%Y%m%d")].tolist(), axis = 0)
-        df = df.loc[(code, '20100101') : (code, (datetime.now() + timedelta(days = 1)).strftime("%Y%m%d"))]
-        return df
+        return total
     
     # 예수금 가져오기
     def get_deposit(self):
@@ -153,5 +154,5 @@ class Kiwoom(QAxWidget):
         total = self.tr_data
 
         total["_id"] = {"code": code, "date": req_date}
-        df = total
-        return df
+
+        return total
