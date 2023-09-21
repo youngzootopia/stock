@@ -15,16 +15,27 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # kodak_list = Kiwoom.get_code_list_stok_market("10")
 
     # 일별 적재
+    # 9/20 해야할 일, 1. 012800 까지는 9/1~18 적재, 2. 9/19 적재, 3. 9/20 적재, 465780 오류 
     stock_list = []
-    date_list = pandas.date_range(start = '20230901', end = '20230919', freq = 'D')
+    date_list = pandas.date_range(start = '20230919', end = '20230920', freq = 'D')
+    # isNext = True
     for kospi in kospi_list:
+        # if kospi == "012750":
+        #     isNext = False
+
+        # if isNext:
+        #     continue
+
+        # if kospi == "012800":
+        #     break
         print(kospi)
         for dateStr in date_list:
-            stock_price = Kiwoom.get_day_price(kospi, dateStr.replace('-', ''))
+            stock_price = Kiwoom.get_day_price(kospi, dateStr.strftime("%Y%m%d"))
             if len(stock_price) > 0:
                 stock_list.append(stock_price)
                 Mongo.insert_price_daily(stock_price)
 
+    # json 파일 생성, DB에 잘 넣고 있어 딱히 필요 없을 듯
     # with open("daily_stock_list.json", "w") as json_file:
     #     json.dump(stock_list, json_file, indent=4)
 
@@ -33,11 +44,11 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # 특정 종목부터 받아올 경우 isNext 사용
     # isNext = True
     # for kospi in kospi_list:
-    # #     if kospi == "000020":
-    # #         isNext = False
+    #     if kospi == "530023":
+    #         isNext = False
 
-    # #     if isNext:
-    # #         continue    
+    #     if isNext:
+    #         continue    
     #     print(kospi)
     #     stock_price_list = Kiwoom.get_price(kospi)
 
