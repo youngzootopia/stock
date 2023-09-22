@@ -1,6 +1,6 @@
-
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import pymongo.errors
 import certifi
 import json
 
@@ -39,7 +39,10 @@ class Mongo():
     def insert_price_daily(self, dict):
         coll = self.db["price"]
         # print(df.to_json())
-        result = coll.insert_one(dict)
+        try:
+            result = coll.insert_one(dict)
+        except pymongo.errors.DuplicateKeyError:
+            print("DuplicateKeyError")
         # result = coll.insert_many(json.loads(df.T.to_json()).values())
 
         # print(result.inserted_ids)

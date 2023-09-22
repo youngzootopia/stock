@@ -17,10 +17,10 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # 일별 적재
     # 9/20 해야할 일, 1. 012800 까지는 9/1~18 적재, 2. 9/19 적재, 3. 9/20 적재, 465780 오류 
     stock_list = []
-    date_list = pandas.date_range(start = '20230919', end = '20230920', freq = 'D')
+    date_list = pandas.date_range(start = '20230921', end = '20230921', freq = 'D')
     # isNext = True
     for kospi in kospi_list:
-        # if kospi == "012750":
+        # if kospi == "465680":
         #     isNext = False
 
         # if isNext:
@@ -31,7 +31,8 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
         print(kospi)
         for dateStr in date_list:
             stock_price = Kiwoom.get_day_price(kospi, dateStr.strftime("%Y%m%d"))
-            if len(stock_price) > 0:
+            # 데이터가 있어야 하고, 시가가 0원 이상만 적재
+            if len(stock_price) > 0 and stock_price['open'] > 0:
                 stock_list.append(stock_price)
                 Mongo.insert_price_daily(stock_price)
 

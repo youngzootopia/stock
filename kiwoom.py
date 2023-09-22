@@ -77,16 +77,20 @@ class Kiwoom(QAxWidget):
             self.tr_data = int(deposit)
 
         elif rqname == "opt10086_req": # 일별 주식 가격 정보 가져오기
-            open = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "시가"))
-            open = open if open >= 0 else open * -1
-            high = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "고가"))
-            high = high if high >= 0 else high * -1
-            low = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "저가"))
-            low = low if low >= 0 else low * -1
-            close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종가"))
-            close = close if close >= 0 else close * -1
-            volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "거래량"))
-            total = {'open': open, 'high': high, 'low': low, 'close': close, 'volume': volume }
+            try: # 주식 가격이 없는 경우 ''
+                open = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "시가"))
+                open = open if open >= 0 else open * -1
+                high = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "고가"))
+                high = high if high >= 0 else high * -1
+                low = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "저가"))
+                low = low if low >= 0 else low * -1
+                close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종가"))
+                close = close if close >= 0 else close * -1
+                volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "거래량"))
+                total = {'open': open, 'high': high, 'low': low, 'close': close, 'volume': volume }
+            except ValueError:
+                total = {'open': 0, 'high': 0, 'low': 0, 'close': 0, 'volume': 0 }
+                print("no price infomation")
             self.tr_data = total
 
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
