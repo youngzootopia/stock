@@ -1,1 +1,0 @@
-df.to_json(orient='records')

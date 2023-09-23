@@ -46,3 +46,11 @@ class Mongo():
         # result = coll.insert_many(json.loads(df.T.to_json()).values())
 
         # print(result.inserted_ids)
+
+    def delete_Many(self, query):
+        coll = self.db["price"]
+
+        d = coll.delete_many(query)
+
+        print(d.deleted_count, " documents deleted !!")
+
