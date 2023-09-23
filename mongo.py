@@ -54,3 +54,17 @@ class Mongo():
 
         print(d.deleted_count, " documents deleted !!")
 
+    def get_min_date(self):
+        coll = self.db["price"]
+
+        agg_result = coll.aggregate(
+            [{
+            "$group" : 
+                {"_id" : None, 
+                "minDate" : {"$min" : "$_id.date"}
+                }}
+            ])
+        
+        # 쿼리결과가 1개 뿐임
+        return agg_result.next()['minDate']
+
