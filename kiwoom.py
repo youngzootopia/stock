@@ -1,5 +1,6 @@
 from PyQt5.QAxContainer import *
 from PyQt5.QtCore import *
+from datetime import datetime, timedelta
 
 import time
 import pandas as pd
@@ -42,7 +43,7 @@ class Kiwoom(QAxWidget):
     # 연속 조회할 값의 유무,
     # 종목 코드, 기준 일자: 입력 안하면 최근일자, 수정 주가 구분: 1로 사용할 예정, TR 묶음 지정 네자리 숫자
     def _on_receive_tr_data(self, screen_no, rqname, trcode, record_name, next, v1, v2, v3, v4):
-        # print(screen_no, rqname, trcode, record_name, next)
+        print(screen_no, rqname, trcode, record_name, next)
         cnt = self.dynamicCall("GetRepeatCnt(QString, QString)", trcode, rqname)
 
         if next == "2":
@@ -50,16 +51,25 @@ class Kiwoom(QAxWidget):
         else:
             self.isNext = False
 
-        if rqname == "opt10081_req": # 주식 가격 정보 가져오기
+        if rqname == "opt10081_req": # 일괄 주식 가격 정보 가져오기
             total = []
+            code = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종목코드").strip()
+            
             for i in range(cnt):
                 date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "일자").strip()
+
+                if date < '20180101' or date == datetime.now().strftime("%Y%m%d"):
+                    continue
+                
                 open = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "시가").strip())
                 high = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "고가").strip())
                 low = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "저가").strip())
                 close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "현재가").strip())
                 volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "거래량").strip())
-                total.append([date, open, high, low, close, volume])
+
+                stock = {'open': open, 'high': high, 'low': low, 'close': close, 'volume': volume }
+                stock["_id"] = {"code": code, "date": date}
+                total.append(stock)
             self.tr_data = total
         
         elif rqname == "opw00001_req": # 예수금 가져오기
@@ -67,15 +77,20 @@ class Kiwoom(QAxWidget):
             self.tr_data = int(deposit)
 
         elif rqname == "opt10086_req": # 일별 주식 가격 정보 가져오기
-            total = []
-            # date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "날짜")
-            date = '20230824'
-            open = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "시가"))
-            high = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "고가"))
-            low = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "저가"))
-            close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종가"))
-            volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "거래량"))
-            total.append([date, open, high, low, close, volume])
+            try: # 주식 가격이 없는 경우 ''
+                open = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "시가"))
+                open = open if open >= 0 else open * -1
+                high = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "고가"))
+                high = high if high >= 0 else high * -1
+                low = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "저가"))
+                low = low if low >= 0 else low * -1
+                close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종가"))
+                close = close if close >= 0 else close * -1
+                volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "거래량"))
+                total = {'open': open, 'high': high, 'low': low, 'close': close, 'volume': volume }
+            except ValueError:
+                total = {'open': 0, 'high': 0, 'low': 0, 'close': 0, 'volume': 0 }
+                print("no price infomation")
             self.tr_data = total
 
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
@@ -122,12 +137,9 @@ class Kiwoom(QAxWidget):
             self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 2, "0020")
             self.tr_event_loop.exec_()
             total += self.tr_data
-            time.sleep(5)       
+            time.sleep(5)
 
-        df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume'])
-        df = df.drop_duplicates()
-        df = df.sort_index()
-        return df
+        return total
     
     # 예수금 가져오기
     def get_deposit(self):
@@ -149,7 +161,6 @@ class Kiwoom(QAxWidget):
 
         total = self.tr_data
 
-        df = pd.DataFrame(total, columns = ['date', 'open', 'high', 'low', 'close', 'volume'])
-        df = df.drop_duplicates()
-        df = df.sort_index()
-        return df
+        total["_id"] = {"code": code, "date": req_date}
+
+        return total
