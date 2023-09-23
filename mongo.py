@@ -62,9 +62,32 @@ class Mongo():
             "$group" : 
                 {"_id" : None, 
                 "minDate" : {"$min" : "$_id.date"}
-                }}
-            ])
+                }
+            }])
         
         # 쿼리결과가 1개 뿐임
         return agg_result.next()['minDate']
+
+    def get_price_data(self, code):
+        coll = self.db["price"]
+
+        find_result = coll.aggregate(
+            [{
+                "$match" :
+                    {"_id.code": code}}, 
+            {
+                "$project" : {
+                    "_id" : 0, 
+                    "date" : "$_id.date", 
+                    "open" : 1, 
+                    "high" : 1, 
+                    "low" : 1, 
+                    "close" : 1, 
+                    "volume" : 1}
+
+            }])
+        
+        
+
+        return find_result
 

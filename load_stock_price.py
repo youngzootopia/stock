@@ -8,9 +8,11 @@ import exchange_calendars as xcals
 from kiwoom import Kiwoom
 from mongo import Mongo
 
+@dispatch(str)
 def daily_load(start_date):
     daily_load(start_date, start_date)
 
+@dispatch(str, str)
 def daily_load(start_date, end_date):
     # 종목 정보 가져오기
     kospi_list = Kiwoom.get_code_list_stok_market("0")
@@ -41,6 +43,7 @@ def daily_load(start_date, end_date):
             if len(stock_price) > 0 and stock_price['open'] > 0:
                 stock_list.append(stock_price)
                 Mongo.insert_price_daily(stock_price)
+
 # 2018~ 일괄 적재 완료.    
 def full_load():
     # 종목 정보 가져오기
@@ -92,12 +95,15 @@ def delete_closed_data(start_date):
 
 if __name__ == '__main__': # 중복 방지를 위해 사용
     # 키움 API 실행
-    # app = QApplication(sys.argv)
-    # Kiwoom = Kiwoom()
+    app = QApplication(sys.argv)
+    Kiwoom = Kiwoom()
     Mongo = Mongo()
-    # app.exec_()
+    app.exec_()
 
-    delete_closed_data()
+    # daily_load 기간으로 실행 시 주말도 적재하기 때문에, 휴장 데이터 삭제
+    # delete_closed_data('20230923')
+
+    daily_load("20230925")    
     
 
     
