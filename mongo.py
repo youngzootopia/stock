@@ -46,3 +46,48 @@ class Mongo():
         # result = coll.insert_many(json.loads(df.T.to_json()).values())
 
         # print(result.inserted_ids)
+
+    def delete_Many(self, query):
+        coll = self.db["price"]
+
+        d = coll.delete_many(query)
+
+        print(d.deleted_count, " documents deleted !!")
+
+    def get_min_date(self):
+        coll = self.db["price"]
+
+        agg_result = coll.aggregate(
+            [{
+            "$group" : 
+                {"_id" : None, 
+                "minDate" : {"$min" : "$_id.date"}
+                }
+            }])
+        
+        # 쿼리결과가 1개 뿐임
+        return agg_result.next()['minDate']
+
+    def get_price_data(self, code):
+        coll = self.db["price"]
+
+        find_result = coll.aggregate(
+            [{
+                "$match" :
+                    {"_id.code": code}}, 
+            {
+                "$project" : {
+                    "_id" : 0, 
+                    "date" : "$_id.date", 
+                    "open" : 1, 
+                    "high" : 1, 
+                    "low" : 1, 
+                    "close" : 1, 
+                    "volume" : 1}
+
+            }])
+        
+        
+
+        return find_result
+
