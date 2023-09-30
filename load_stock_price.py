@@ -23,14 +23,14 @@ def daily_load(start_date, end_date):
     # 일별 적재
     stock_list = []
     date_list = pandas.date_range(start = start_date, end = end_date, freq = 'D')
-    # isNext = True
+    isNext = True
     for kospi in kospi_list:
         # 특정 종목부터 적재할 때
-        # if kospi == "465680":
-        #     isNext = False
+        if kospi == "234310":
+            isNext = False
 
-        # if isNext:
-        #     continue
+        if isNext:
+            continue
 
         # 특정 종목까지만 적재할 때
         # if kospi == "012800":
@@ -44,6 +44,13 @@ def daily_load(start_date, end_date):
             if len(stock_price) > 0 and stock_price['open'] > 0:
                 stock_list.append(stock_price)
                 Mongo.insert_price_daily(stock_price)
+                # Mongo.update_predict_price(stock_price) # 전날 예측한 종가 검증을 위해 실제 종가 및 등락률 업데이트
+
+                # 데이터 예측
+                XKRX = xcals.get_calendar("XKRX")
+                next_open = XKRX.next_open(dateStr.strftime("%Y%m%d"))
+
+                Ml_stock.predict_stock_close_price(kospi, next_open.strftime("%Y%m%d"))
 
 # 2018~ 일괄 적재 완료.    
 def full_load():
@@ -120,9 +127,8 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # daily_load 기간으로 실행 시 주말도 적재하기 때문에, 휴장 데이터 삭제
     # delete_closed_data('20230923')
 
-    # daily_load("20230925")    
-
-    Ml_stock.predict_stock_close_price("285130")
+    daily_load("20230926")       
+    # Ml_stock.predict_stock_close_price("005390", "20230927")
 
     app.exec_()
     

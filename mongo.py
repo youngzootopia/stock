@@ -12,6 +12,8 @@ class Mongo():
 
         self.connect()
 
+        print()
+
     def connect(self):
         uri = "mongodb+srv://" + self.config['DEFAULT']['ATLAS_USERNAME'] + ":" + self.config['DEFAULT']['ATLAS_PASS'] + "@stockdb.wbsygbk.mongodb.net/?retryWrites=true&w=majority"
 
@@ -99,3 +101,54 @@ class Mongo():
     def insert_code_name_many(self, arr):
         coll = self.db["code"]
         result = coll.insert_many(arr)
+
+    def insert_predict_price(self, predict_price):
+        coll = self.db["predict"]
+        result = coll.insert_one(predict_price)
+
+    def get_stock_name(self, code):
+        coll = self.db["code"]
+
+        code_and_name = coll.find_one({'_id.code': code})
+
+        return code_and_name["name"]
+    
+    def update_predict_price(self, actually_price):
+        coll = self.db["predict"]
+        close = self.get_recent_close(actually_price['_id']['code'])[0]['close']
+        # print(df.to_json())
+        try:
+            result = coll.update({"_id.code": actually_price['_id']['code']
+                                  , "_id.date": actually_price['_id']['date']}
+                                 , {"$set":{"close": actually_price['close']
+                                            , "fluctuation_rate": round(((actually_price['close'] - close) / close * 100), 2)
+                                            }})
+        except pymongo.errors.DuplicateKeyError:
+            print("DuplicateKeyError")
+        # result = coll.insert_many(json.loads(df.T.to_json()).values())
+
+        # print(result.inserted_ids)
+
+    def get_recent_close(self, code):
+        coll = self.db["price"]
+
+        filter = {
+            '_id.code': code
+            }
+        project = {
+            'close': 1, 
+            '_id': 0
+            }
+        sort = list({
+            '_id.date': -1
+            }.items())
+        limit = 1
+
+        result = coll.find(
+            filter = filter,
+            projection = project,
+            sort = sort,
+            limit = limit
+        )
+
+        return result
