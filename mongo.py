@@ -86,8 +86,13 @@ class Mongo():
                     "volume" : 1}
 
             }])
-        
-        
 
         return find_result
+    
+    def get_stock_list(self):
+        coll = self.db["price"]
+
+        stock_list = coll.distinct("_id.code")
+
+        return stock_list
 

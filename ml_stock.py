@@ -5,36 +5,38 @@ from mongo import Mongo
 
 Mongo = Mongo()
 
-samsung_df = pd.DataFrame(Mongo.get_price_data("005930"))
-samsung_df.set_index(keys = 'date', inplace = True)
-samsung_df.sort_index()
+stock_list = Mongo.get_stock_list()
 
-data = []
-target = []
 
-for i in range(len(samsung_df) - 1):
-    a = list(samsung_df.iloc[i]) # 학습 데이터는 주가정보 전부
-    b = samsung_df.iloc[i + 1, 3] # open, high, low, close, volume, 정답 데이터는 종가
+for stock_code in stock_list:
+    df = pd.DataFrame(Mongo.get_price_data(stock_code))
+    df.set_index(keys = 'date', inplace = True)
+    df.sort_index()
 
-    data.append(a)
-    target.append(b)
+    data = []
+    target = []
 
-data = np.array(data)
-target = np.array(target)
+    for i in range(len(df) - 2):
+        a = list(df.iloc[i]) # 학습 데이터는 주가정보 전부
+        b = df.iloc[i + 1, 3] # open, high, low, close, volume, 정답 데이터는 종가
 
-rf = RandomForestRegressor(oob_score = True)
-rf.fit(data, target)
-score = rf.oob_score_
+        data.append(a)
+        target.append(b)
 
-print("평가 점수: {}".format(score))
+    data = np.array(data)
+    target = np.array(target)
 
-# 금일 종가
-new = samsung_df.iloc[-2]
+    rf = RandomForestRegressor(oob_score = True)
+    rf.fit(data, target)
+    score = rf.oob_score_
 
-print(new)
+    # print("평가 점수: {}".format(score))
 
-pred = rf.predict([new])
-print("내일 종가: {}".format(pred[0]))
+    # 금일 종가
+    new = df.iloc[-2]
+
+    pred = rf.predict([new])
+    print("예측 종가: {}, 실제 종가: {}".format(pred[0], df.iloc[-1, 3]))
 
 
 
