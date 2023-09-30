@@ -104,7 +104,11 @@ class Mongo():
 
     def insert_predict_price(self, predict_price):
         coll = self.db["predict"]
-        result = coll.insert_one(predict_price)
+        try:
+            result = coll.insert_one(predict_price)
+        except pymongo.errors.DuplicateKeyError:
+            print("predict DuplicateKeyError")
+        
 
     def get_stock_name(self, code):
         coll = self.db["code"]
@@ -115,10 +119,10 @@ class Mongo():
     
     def update_predict_price(self, actually_price):
         coll = self.db["predict"]
-        close = self.get_recent_close(actually_price['_id']['code'])[0]['close']
-        # print(df.to_json())
+        close = self.get_recent_close(actually_price['_id']['code'])['close']
+
         try:
-            result = coll.update({"_id.code": actually_price['_id']['code']
+            result = coll.update_one({"_id.code": actually_price['_id']['code']
                                   , "_id.date": actually_price['_id']['date']}
                                  , {"$set":{"close": actually_price['close']
                                             , "fluctuation_rate": round(((actually_price['close'] - close) / close * 100), 2)
@@ -144,7 +148,7 @@ class Mongo():
             }.items())
         limit = 1
 
-        result = coll.find(
+        result = coll.find_one(
             filter = filter,
             projection = project,
             sort = sort,
