@@ -95,4 +95,7 @@ class Mongo():
         stock_list = coll.distinct("_id.code")
 
         return stock_list
-
+    
+    def insert_code_name_many(self, arr):
+        coll = self.db["code"]
+        result = coll.insert_many(arr)
