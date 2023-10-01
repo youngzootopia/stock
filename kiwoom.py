@@ -157,7 +157,8 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SetInputValue(QString, QString)", "표시구분", "0")
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10086_req", "opt10086", 0, "0006")
         self.tr_event_loop.exec_()
-        time.sleep(5)
+        # 어차피 내일 종가 예측할 것이기 때문에, 5초 딜레이 삭제
+        time.sleep(3)
 
         total = self.tr_data
 
