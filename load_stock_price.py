@@ -23,14 +23,14 @@ def daily_load(start_date, end_date):
     # 일별 적재
     stock_list = []
     date_list = pandas.date_range(start = start_date, end = end_date, freq = 'D')
-    isNext = True
+    # isNext = True
     for kospi in kospi_list:
         # 특정 종목부터 적재할 때
-        if kospi == "520056":
-            isNext = False
+        # if kospi == "520056":
+        #     isNext = False
 
-        if isNext:
-            continue
+        # if isNext:
+        #     continue
 
         # 특정 종목까지만 적재할 때
         # if kospi == "012800":
@@ -117,6 +117,13 @@ def load_stock_code_and_name():
 
     Mongo.insert_code_name_many(total)
 
+def kospi_full_load():
+    stock_price_list = Kiwoom.get_kospi_price("") # 업종코드 = 001:종합(KOSPI), 002:대형주, 003:중형주, 004:소형주 101:종합(KOSDAQ), 201:KOSPI200, 302:KOSTAR, 701: KRX100 나머지 ※ 업종코드 참고
+
+    # 이상한 종목을 가져오는 경우가 있음. 이런 경우 size 필터링해서 DB에 안넣기
+    if len(stock_price_list) > 0:
+        Mongo.insert_price_many(stock_price_list)
+
 if __name__ == '__main__': # 중복 방지를 위해 사용
     # 키움 API 실행
     app = QApplication(sys.argv)
@@ -127,8 +134,10 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # daily_load 기간으로 실행 시 주말도 적재하기 때문에, 휴장 데이터 삭제
     # delete_closed_data('20230923')
 
-    daily_load("20230927")       
+    daily_load("20231004")       
     # Ml_stock.predict_stock_close_price("005390", "20230927")
+
+    # kospi_full_load()
 
     app.exec_()
     

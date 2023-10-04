@@ -93,6 +93,26 @@ class Kiwoom(QAxWidget):
                 print("no price infomation")
             self.tr_data = total
 
+        elif rqname == "opt20006_req": # 코스피 일봉 정보 일괄로 가져오기
+            total = []
+            code = "KOSPI"
+            for i in range(cnt):
+                date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "일자").strip()
+
+                # if date < '20180101' or date == datetime.now().strftime("%Y%m%d"):
+                #     continue
+                
+                open = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "시가").strip()) / 100
+                high = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "고가").strip()) / 100
+                low = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "저가").strip()) / 100
+                close = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "현재가").strip()) / 100
+                volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "거래량").strip()) * 1000
+
+                stock = {'open': open, 'high': high, 'low': low, 'close': close, 'volume': volume }
+                stock["_id"] = {"code": code, "date": date}
+                total.append(stock)
+            self.tr_data = total
+
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
         time.sleep(1)
 
@@ -163,5 +183,25 @@ class Kiwoom(QAxWidget):
         total = self.tr_data
 
         total["_id"] = {"code": code, "date": req_date}
+
+        return total
+    
+    # 업종(코스피 가져오려고) 가격 정보 가져오기
+    def get_kospi_price(self, code):
+        self.dynamicCall("SetInputValue(QString, QString)", "업종코드", "001" if code == "" else code)
+        # self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20231003")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt20006_req", "opt20006", 0, "0030")
+        self.tr_event_loop.exec_()
+        time.sleep(5)
+
+        total = self.tr_data
+
+        while self.isNext:
+            self.dynamicCall("SetInputValue(QString, QString)", "업종코드", "001" if code != "" else code)
+            # self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20231003")
+            self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt20006_req", "opt20006", 0, "0030")
+            self.tr_event_loop.exec_()
+            total += self.tr_data
+            time.sleep(5)
 
         return total
