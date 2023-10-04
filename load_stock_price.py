@@ -18,6 +18,7 @@ def daily_load(start_date, end_date):
     # 종목 정보 가져오기
     kospi_list = Kiwoom.get_code_list_stok_market("0")
     # kosdak_list = Kiwoom.get_code_list_stok_market("10")
+    kospi_list.append("KOSPI")
 
     # 특정 종목부터 받아올 경우 isNext 사용
     # 일별 적재
@@ -38,7 +39,10 @@ def daily_load(start_date, end_date):
 
         print(kospi)
         for dateStr in date_list:
-            stock_price = Kiwoom.get_day_price(kospi, dateStr.strftime("%Y%m%d"))
+            if kospi == "KOSPI":
+                stock_price = Kiwoom.get_day_kospi_price("")
+            else:
+                stock_price = Kiwoom.get_day_price(kospi, dateStr.strftime("%Y%m%d"))
             
             # 데이터가 있어야 하고, 시가가 0원 이상만 적재
             if len(stock_price) > 0 and stock_price['open'] > 0:

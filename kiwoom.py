@@ -113,6 +113,23 @@ class Kiwoom(QAxWidget):
                 total.append(stock)
             self.tr_data = total
 
+        elif rqname == "opt20002_req": # 일별 업종별 가격 정보 가져오기
+            try: # 주식 가격이 없는 경우 ''
+                open = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "시가")) / 100
+                open = open if open >= 0 else open * -1
+                high = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "고가")) / 100
+                high = high if high >= 0 else high * -1
+                low = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "저가")) / 100
+                low = low if low >= 0 else low * -1
+                close = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종가")) / 100
+                close = close if close >= 0 else close * -1
+                volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "거래량")) * 1000
+                total = {'open': open, 'high': high, 'low': low, 'close': close, 'volume': volume }
+            except ValueError:
+                total = {'open': 0, 'high': 0, 'low': 0, 'close': 0, 'volume': 0 }
+                print("no price infomation")
+            self.tr_data = total
+
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
         time.sleep(1)
 
@@ -203,5 +220,24 @@ class Kiwoom(QAxWidget):
             self.tr_event_loop.exec_()
             total += self.tr_data
             time.sleep(5)
+
+        return total
+    
+    # 일별 업종별(코스피 가져오려고) 주가 요청
+    def get_day_kospi_price(self, code, req_date):
+        code = "001" if code == "" else code
+        code_name = "KOSPI" if code == "" else code
+
+        self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
+        self.dynamicCall("SetInputValue(QString, QString)", "조회일자", req_date)
+        self.dynamicCall("SetInputValue(QString, QString)", "표시구분", "0")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt20002_req", "opt20002", 0, "0007")
+        self.tr_event_loop.exec_()
+        # 어차피 내일 종가 예측할 것이기 때문에, 5초 딜레이 삭제
+        time.sleep(3)
+
+        total = self.tr_data
+
+        total["_id"] = {"code": code_name, "date": req_date}
 
         return total
