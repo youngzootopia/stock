@@ -10,6 +10,10 @@ class Ml_stock():
 
     def predict_stock_close_price(self, stock_code, date):
         df = pd.DataFrame(self.Mongo.get_price_data(stock_code))
+
+        if len(df) < 2: # 신규 상장한 경우
+            return
+
         df.set_index(keys = 'date', inplace = True)
         df.sort_index()
 

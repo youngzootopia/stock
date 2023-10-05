@@ -119,7 +119,11 @@ class Mongo():
     
     def update_predict_price(self, actually_price):
         coll = self.db["predict"]
-        close = self.get_recent_close(actually_price['_id']['code'])['close']
+        try:
+            close = self.get_recent_close(actually_price['_id']['code'])['close']
+        except TypeError:
+            print("전날 예측 종가 없음")
+            return
 
         try:
             result = coll.update_one({"_id.code": actually_price['_id']['code']

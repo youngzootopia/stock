@@ -25,14 +25,14 @@ def daily_load(start_date, end_date):
     # 일별 적재
     stock_list = []
     date_list = pandas.date_range(start = start_date, end = end_date, freq = 'D')
-    # isNext = True
+    isNext = True
     for kospi in kospi_list:
         # 특정 종목부터 적재할 때
-        # if kospi == "520056":
-        #     isNext = False
+        if kospi == "454910":
+            isNext = False
 
-        # if isNext:
-        #     continue
+        if isNext:
+            continue
 
         # 특정 종목까지만 적재할 때
         # if kospi == "012800":
