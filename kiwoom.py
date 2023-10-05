@@ -117,17 +117,22 @@ class Kiwoom(QAxWidget):
             try: # 주식 가격이 없는 경우 ''
                 open = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "시가")) / 100
                 open = open if open >= 0 else open * -1
+                print(open)
                 high = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "고가")) / 100
                 high = high if high >= 0 else high * -1
+                print(high)
                 low = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "저가")) / 100
                 low = low if low >= 0 else low * -1
+                print(low)
                 close = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "종가")) / 100
                 close = close if close >= 0 else close * -1
+                print(close)
                 volume = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "거래량")) * 1000
+                print(volume)
                 total = {'open': open, 'high': high, 'low': low, 'close': close, 'volume': volume }
             except ValueError:
                 total = {'open': 0, 'high': 0, 'low': 0, 'close': 0, 'volume': 0 }
-                print("no price infomation")
+                print("no price infomation(KOSPI)")
             self.tr_data = total
 
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
@@ -224,13 +229,12 @@ class Kiwoom(QAxWidget):
         return total
     
     # 일별 업종별(코스피 가져오려고) 주가 요청
-    def get_day_kospi_price(self, code, req_date):
+    def get_day_kospi_price(self, code):
         code = "001" if code == "" else code
         code_name = "KOSPI" if code == "" else code
 
         self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
-        self.dynamicCall("SetInputValue(QString, QString)", "조회일자", req_date)
-        self.dynamicCall("SetInputValue(QString, QString)", "표시구분", "0")
+        self.dynamicCall("SetInputValue(QString, QString)", "시장구분", "0") # 시장구분 = 0:코스피, 1:코스닥, 2:코스피200
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt20002_req", "opt20002", 0, "0007")
         self.tr_event_loop.exec_()
         # 어차피 내일 종가 예측할 것이기 때문에, 5초 딜레이 삭제

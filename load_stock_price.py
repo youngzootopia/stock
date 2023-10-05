@@ -18,7 +18,8 @@ def daily_load(start_date, end_date):
     # 종목 정보 가져오기
     kospi_list = Kiwoom.get_code_list_stok_market("0")
     # kosdak_list = Kiwoom.get_code_list_stok_market("10")
-    kospi_list.append("KOSPI")
+    # kospi_list = []
+    # kospi_list.append("KOSPI")
 
     # 특정 종목부터 받아올 경우 isNext 사용
     # 일별 적재
@@ -39,10 +40,11 @@ def daily_load(start_date, end_date):
 
         print(kospi)
         for dateStr in date_list:
+            dateStr = dateStr.strftime("%Y%m%d")
             if kospi == "KOSPI":
                 stock_price = Kiwoom.get_day_kospi_price("")
             else:
-                stock_price = Kiwoom.get_day_price(kospi, dateStr.strftime("%Y%m%d"))
+                stock_price = Kiwoom.get_day_price(kospi, dateStr)
             
             # 데이터가 있어야 하고, 시가가 0원 이상만 적재
             if len(stock_price) > 0 and stock_price['open'] > 0:
@@ -52,7 +54,7 @@ def daily_load(start_date, end_date):
 
                 # 데이터 예측
                 XKRX = xcals.get_calendar("XKRX")
-                next_open = XKRX.next_open(dateStr.strftime("%Y%m%d"))
+                next_open = XKRX.next_open(dateStr)
 
                 Ml_stock.predict_stock_close_price(kospi, next_open.strftime("%Y%m%d"))
 
@@ -138,7 +140,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # daily_load 기간으로 실행 시 주말도 적재하기 때문에, 휴장 데이터 삭제
     # delete_closed_data('20230923')
 
-    daily_load("20231004")       
+    daily_load("20231005")       
     # Ml_stock.predict_stock_close_price("005390", "20230927")
 
     # kospi_full_load()
