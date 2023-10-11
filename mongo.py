@@ -115,7 +115,13 @@ class Mongo():
 
         code_and_name = coll.find_one({'_id.code': code})
 
-        return code_and_name["name"]
+        try:
+            name = code_and_name["name"]
+        except TypeError:
+            name = ""
+            print("{}: no name".format(code))
+
+        return name
     
     def update_predict_price(self, actually_price):
         coll = self.db["predict"]
