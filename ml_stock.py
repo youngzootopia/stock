@@ -7,6 +7,7 @@ class Ml_stock():
     def __init__(self):
         super().__init__()
         self.Mongo = Mongo()
+        self.predict_stock_close_price("009320", "20231013")
 
     def predict_stock_close_price(self, stock_code, date):
         df = pd.DataFrame(self.Mongo.get_price_data(stock_code))
@@ -15,7 +16,7 @@ class Ml_stock():
             return
 
         df.set_index(keys = 'date', inplace = True)
-        df.sort_index()
+        df = df.sort_index(ascending = True)
 
         data = []
         target = []
@@ -51,3 +52,4 @@ class Ml_stock():
 
 
 
+Ml_stock()

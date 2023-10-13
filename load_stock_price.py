@@ -140,7 +140,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # daily_load 기간으로 실행 시 주말도 적재하기 때문에, 휴장 데이터 삭제
     # delete_closed_data('20230923')
 
-    daily_load("20231012")       
+    daily_load("20231013")       
     # Ml_stock.predict_stock_close_price("005390", "20230927")
 
     # kospi_full_load()
