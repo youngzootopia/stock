@@ -7,7 +7,6 @@ class Ml_stock():
     def __init__(self):
         super().__init__()
         self.Mongo = Mongo()
-        self.predict_stock_close_price("009320", "20231013")
 
     def predict_stock_close_price(self, stock_code, date):
         df = pd.DataFrame(self.Mongo.get_price_data(stock_code))
@@ -48,8 +47,3 @@ class Ml_stock():
                          , 'fluctuation_rate': 0}
         predict_price["_id"] = {"code": stock_code, "date": date}
         self.Mongo.insert_predict_price(predict_price)
-
-
-
-
-Ml_stock()
