@@ -42,7 +42,7 @@ def daily_load(start_date, end_date):
         for dateStr in date_list:
             dateStr = dateStr.strftime("%Y%m%d")
             if kospi == "KOSPI":
-                stock_price = Kiwoom.get_day_kospi_price("")
+                print()
             else:
                 stock_price = Kiwoom.get_day_price(kospi, dateStr)
             
@@ -140,7 +140,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # daily_load 기간으로 실행 시 주말도 적재하기 때문에, 휴장 데이터 삭제
     # delete_closed_data('20230923')
 
-    daily_load("20231011")       
+    daily_load("20231012")       
     # Ml_stock.predict_stock_close_price("005390", "20230927")
 
     # kospi_full_load()
