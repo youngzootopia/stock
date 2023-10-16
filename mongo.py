@@ -33,7 +33,10 @@ class Mongo():
     def insert_price_many(self, arr):
         coll = self.db["price"]
         # print(df.to_json())
-        result = coll.insert_many(arr)
+        try:
+            result = coll.insert_many(arr, ordered = False) # ordered=False 이미 있는 값은 merge
+        except Exception as e:
+            print("Error occurred:", e)
         # result = coll.insert_many(json.loads(df.T.to_json()).values())
 
         # print(result.inserted_ids)

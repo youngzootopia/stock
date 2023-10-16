@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 from datetime import datetime
 from multipledispatch import dispatch
+import pandas as pd
 import sys
 import json
 import pandas
@@ -16,10 +17,10 @@ def daily_load(start_date):
 @dispatch(str, str)
 def daily_load(start_date, end_date):
     # 종목 정보 가져오기
-    kospi_list = Kiwoom.get_code_list_stok_market("0")
+    # kospi_list = Kiwoom.get_code_list_stok_market("0")
     # kosdak_list = Kiwoom.get_code_list_stok_market("10")
-    # kospi_list = []
-    # kospi_list.append("KOSPI")
+    kospi_list = []
+    kospi_list.append("KOSPI")
 
     # 특정 종목부터 받아올 경우 isNext 사용
     # 일별 적재
@@ -42,7 +43,9 @@ def daily_load(start_date, end_date):
         for dateStr in date_list:
             dateStr = dateStr.strftime("%Y%m%d")
             if kospi == "KOSPI":
-                print()
+                kospi_price_list = kospi_full_load()
+                stock_price = kospi_price_list.iloc[kospi_price_list.index.get_loc({'KOSPI', dateStr})]
+                print(stock_price)
             else:
                 stock_price = Kiwoom.get_day_price(kospi, dateStr)
             
@@ -90,6 +93,8 @@ def save_json(stock_list, file_name):
 def delete_closed_data():
     delete_closed_data(Mongo.get_min_date())
 
+# daily_load 기간으로 실행 시 주말도 적재하기 때문에, 휴장 데이터 삭제
+# delete_closed_data('20230923')
 @dispatch(str)
 def delete_closed_data(start_date):
     end_date = datetime.now().strftime("%Y%m%d")
@@ -123,12 +128,16 @@ def load_stock_code_and_name():
 
     Mongo.insert_code_name_many(total)
 
+
 def kospi_full_load():
     stock_price_list = Kiwoom.get_kospi_price("") # 업종코드 = 001:종합(KOSPI), 002:대형주, 003:중형주, 004:소형주 101:종합(KOSDAQ), 201:KOSPI200, 302:KOSTAR, 701: KRX100 나머지 ※ 업종코드 참고
 
     # 이상한 종목을 가져오는 경우가 있음. 이런 경우 size 필터링해서 DB에 안넣기
     if len(stock_price_list) > 0:
         Mongo.insert_price_many(stock_price_list)
+    
+    print(stock_price_list)
+    return stock_price_list
 
 if __name__ == '__main__': # 중복 방지를 위해 사용
     # 키움 API 실행
@@ -137,13 +146,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     Mongo = Mongo()
     Ml_stock = Ml_stock()
 
-    # daily_load 기간으로 실행 시 주말도 적재하기 때문에, 휴장 데이터 삭제
-    # delete_closed_data('20230923')
-
     daily_load("20231013")       
-    # Ml_stock.predict_stock_close_price("005390", "20230927")
-
-    # kospi_full_load()
 
     app.exec_()
     
