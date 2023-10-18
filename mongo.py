@@ -36,7 +36,8 @@ class Mongo():
         try:
             result = coll.insert_many(arr, ordered = False) # ordered=False 이미 있는 값은 merge
         except Exception as e:
-            print("Error occurred:", e)
+            # print("Error occurred:", e)
+            print("Error occurred")
         # result = coll.insert_many(json.loads(df.T.to_json()).values())
 
         # print(result.inserted_ids)
