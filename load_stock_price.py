@@ -17,9 +17,9 @@ def daily_load(start_date):
 @dispatch(str, str)
 def daily_load(start_date, end_date):
     # 종목 정보 가져오기
-    # kospi_list = Kiwoom.get_code_list_stok_market("0")
+    kospi_list = Kiwoom.get_code_list_stok_market("0")
     # kosdak_list = Kiwoom.get_code_list_stok_market("10")
-    kospi_list = []
+    # kospi_list = []
     kospi_list.append("KOSPI")
 
     # 특정 종목부터 받아올 경우 isNext 사용
@@ -146,7 +146,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     Mongo = Mongo()
     Ml_stock = Ml_stock()
 
-    daily_load("20231013")       
+    daily_load(datetime.today().strftime("%Y%m%d"))       
 
     app.exec_()
     
