@@ -20,7 +20,7 @@ def daily_load(start_date, end_date):
     kospi_list = Kiwoom.get_code_list_stok_market("0")
     # kosdak_list = Kiwoom.get_code_list_stok_market("10")
     # kospi_list = []
-    # kospi_list.append("KOSPI")
+    kospi_list.append("KOSPI")
 
     # 특정 종목부터 받아올 경우 isNext 사용
     # 일별 적재
@@ -44,8 +44,9 @@ def daily_load(start_date, end_date):
             dateStr = dateStr.strftime("%Y%m%d")
             if kospi == "KOSPI":
                 kospi_price_list = kospi_full_load()
-                stock_price = kospi_price_list.iloc[kospi_price_list.index.get_loc({'KOSPI', dateStr})]
-                print(stock_price)
+                for kospi_price in kospi_price_list:
+                    if kospi_price['_id']['date'] == dateStr:
+                        stock_price = kospi_price
             else:
                 stock_price = Kiwoom.get_day_price(kospi, dateStr)
             
@@ -135,8 +136,7 @@ def kospi_full_load():
     # 이상한 종목을 가져오는 경우가 있음. 이런 경우 size 필터링해서 DB에 안넣기
     if len(stock_price_list) > 0:
         Mongo.insert_price_many(stock_price_list)
-    
-    print(stock_price_list)
+
     return stock_price_list
 
 if __name__ == '__main__': # 중복 방지를 위해 사용
@@ -146,7 +146,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     Mongo = Mongo()
     Ml_stock = Ml_stock()
 
-    daily_load("20231018")       
+    daily_load(datetime.today().strftime("%Y%m%d"))       
 
     app.exec_()
     
