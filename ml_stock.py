@@ -38,7 +38,7 @@ class Ml_stock():
         new = df.iloc[-1]
 
         pred = rf.predict([new])
-        print("예측 종가: {}".format(pred[0], df.iloc[-1, 3]))
+        # print("예측 종가: {}".format(pred[0], df.iloc[-1, 3]))
 
         predict_price = {'name': self.Mongo.get_stock_name(stock_code)
                          , 'pred_close': pred[0]
