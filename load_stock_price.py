@@ -9,6 +9,7 @@ import exchange_calendars as xcals
 from kiwoom import Kiwoom
 from mongo import Mongo
 from ml_stock import Ml_stock
+from teleBot import TeleBot
 
 @dispatch(str)
 def daily_load(start_date):
@@ -139,14 +140,32 @@ def kospi_full_load():
 
     return stock_price_list
 
+def report_close_pred(dateStr):
+    TeleBot.report_message("{}의 종가 예측 보고서".format(dateStr))
+
+    for pred in Mongo.get_pred_close(dateStr, 30):
+        print("종목명: {0}\n예측 상승률: {1}\n예측 종가: {2}".format(Mongo.get_stock_name(pred['_id']['code']), pred['pred_fluctuation_rate'], pred['pred_close']))
+        TeleBot.report_message("종목명: {0}\n예측 상승률: {1}\n예측 종가: {2}".format(Mongo.get_stock_name(pred['_id']['code']), pred['pred_fluctuation_rate'], pred['pred_close']))
+
 if __name__ == '__main__': # 중복 방지를 위해 사용
     # 키움 API 실행
     app = QApplication(sys.argv)
     Kiwoom = Kiwoom()
     Mongo = Mongo()
     Ml_stock = Ml_stock()
+    TeleBot = TeleBot()
 
-    daily_load(datetime.today().strftime("%Y%m%d"))       
+    dateStr = datetime.today().strftime("%Y%m%d")
+
+    daily_load(dateStr)       
+    
+    XKRX = xcals.get_calendar("XKRX")
+    next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
+    report_close_pred(next_open)
+   
+
+
+
 
     app.exec_()
     

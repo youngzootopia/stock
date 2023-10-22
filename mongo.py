@@ -12,8 +12,6 @@ class Mongo():
 
         self.connect()
 
-        print()
-
     def connect(self):
         uri = "mongodb+srv://" + self.config['DEFAULT']['ATLAS_USERNAME'] + ":" + self.config['DEFAULT']['ATLAS_PASS'] + "@stockdb.wbsygbk.mongodb.net/?retryWrites=true&w=majority"
 
@@ -163,6 +161,30 @@ class Mongo():
         limit = 1
 
         result = coll.find_one(
+            filter = filter,
+            projection = project,
+            sort = sort,
+            limit = limit
+        )
+
+        return result
+    
+    def get_pred_close(self, dateStr, limit):
+        coll = self.db["predict"]
+
+        filter = {
+            '_id.date': dateStr
+            }
+        project = {
+            'pred_close': 1,
+            'pred_fluctuation_rate': 1, 
+            '_id.code': 1
+            }
+        sort = list({
+            'pred_fluctuation_rate': -1
+            }.items())
+
+        result = coll.find(
             filter = filter,
             projection = project,
             sort = sort,

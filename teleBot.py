@@ -1,22 +1,17 @@
 import json
-from telegram.ext import Updater
-from telegram.ext import CommandHandler
+import telepot 
 
-with open('./config/pass.json') as f:
-    config = json.load(f)
-token = config['DEFAULT']['TELEGRAM_TOKEN'] 
+class TeleBot():
+    def __init__(self):
+        super().__init__()
+        with open('./config/pass.json') as f:
+            self.config = json.load(f)
 
-# updater 
-updater = Updater(token='token', use_context=True)
-dispatcher = updater.dispatcher
+        self.token = self.config['DEFAULT']['TELEGRAM_TOKEN'] 
+        self.user_id = self.config['DEFAULT']['TELEGRAM_ID'] 
 
+        self.bot = telepot.Bot(self.token)
 
-# command hander
-def start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
+    def report_message(self, data):
+        self.bot.sendMessage(chat_id=self.user_id, text=str(data))
 
-start_handler = CommandHandler('start', start)
-dispatcher.add_handler(start_handler)
-
-# polling
-updater.start_polling()
