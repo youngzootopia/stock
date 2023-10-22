@@ -205,3 +205,23 @@ class Kiwoom(QAxWidget):
             time.sleep(5)
 
         return total
+    
+    def buy_stock(self, code, price, quantity):
+        stock_account = self.get_account_number()
+
+        code = "005930" if code == "" else code
+        price = 0 if price == "" else price
+        division = "03" if price == "" else "00"
+        quantity = 1 if quantity == "" else quantity
+
+        ''' sRQName	사용자가 임의로 지정할 수 있는 이름입니다. (예: "삼성전자주문")
+            sScreenNO	화면번호로 "0"을 제외한 4자리의 문자열을 사용합니다. (예: "1000")
+            sAccNo	계좌번호입니다. (예: "8140977311")
+            nOrderType	주문유형입니다. (1: 매수, 2: 매도, 3: 매수취소, 4: 매도취소, 5: 매수정정, 6: 매도 정정)
+            sCode	매매할 주식의 종목코드입니다.
+            nQty	주문수량입니다.
+            nPrice	주문단가입니다.
+            sHogaGb	'00': 지정가, '03': 시장가
+            sOrgOrderNo	원주문번호로 주문 정정시 사용합니다.
+        '''
+        self.SendOrder("시장가매수", "0101", stock_account, 1, "005930", 10, price, division, "")
