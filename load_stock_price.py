@@ -144,7 +144,6 @@ def report_close_pred(dateStr):
     TeleBot.report_message("{}의 종가 예측 보고서".format(dateStr))
 
     for pred in Mongo.get_pred_close(dateStr, 30):
-        print("종목명: {0}\n예측 상승률: {1}\n예측 종가: {2}".format(Mongo.get_stock_name(pred['_id']['code']), pred['pred_fluctuation_rate'], pred['pred_close']))
         TeleBot.report_message("종목명: {0}\n예측 상승률: {1}\n예측 종가: {2}".format(Mongo.get_stock_name(pred['_id']['code']), pred['pred_fluctuation_rate'], pred['pred_close']))
 
 if __name__ == '__main__': # 중복 방지를 위해 사용
