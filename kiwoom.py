@@ -116,6 +116,9 @@ class Kiwoom(QAxWidget):
                 stock["_id"] = {"code": code, "date": date}
                 total.append(stock)
             self.tr_data = total
+        elif rqname == "opw00001_req": # 예수금 가져오기
+            deposit = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "주문가능금액")
+            self.tr_data = int(deposit)
 
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
         time.sleep(1)
@@ -254,3 +257,14 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매수", "0150", stock_account, 1, code, quantity, price, division, ""])
 
         time.sleep(1) # 초당 5번 주문 가능
+
+    def get_deposit(self):
+        self.dynamicCall("SetInputValue(QString, QString)", "계좌번호", self.account_number)
+        self.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "00")
+        self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00001", "opw00001_req", 0, "0002")
+
+        self.tr_event_loop.exec()
+        return self.tr_data
+
+

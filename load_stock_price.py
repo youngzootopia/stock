@@ -141,7 +141,8 @@ def kospi_full_load():
     return stock_price_list
 
 def report_close_pred(dateStr):
-    TeleBot.report_message("{}의 종가 예측 보고서".format(dateStr))
+    pred_kospi = Mongo.get_kospi_pred_close(dateStr)
+    TeleBot.report_message("{0} KOSPI 예측 보고서: {1}".format(dateStr, pred_kospi['pred_fluctuation_rate']))
 
     for pred in Mongo.get_pred_close(dateStr, 30):
         TeleBot.report_message("종목명: {0}\n예측 상승률: {1}\n예측 종가: {2}".format(Mongo.get_stock_name(pred['_id']['code']), pred['pred_fluctuation_rate'], pred['pred_close']))
@@ -156,11 +157,11 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
 
     dateStr = datetime.today().strftime("%Y%m%d")
 
-    daily_load(dateStr)       
+    # daily_load(dateStr)       
     
     XKRX = xcals.get_calendar("XKRX")
     next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
-    report_close_pred(next_open)
+    report_close_pred('20231025')
 
     app.exec_()
     

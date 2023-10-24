@@ -8,8 +8,11 @@ from ml_stock import Ml_stock
 from teleBot import TeleBot
 
 def buy_predict_stock(dateStr, limit):
-    # 예수금 조회 필요
-
+    # 예수금 조회
+    deposit = Kiwoom.get_deposit()
+    print("예수금: ", deposit)
+    
+    # 매수 Strat
     for pred in Mongo.get_pred_close(dateStr, limit):
 
         # 실시간 체결 정보 가져오기 필요 -> SetRealReg 현재가 비교 및 매수 혹은 매도

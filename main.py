@@ -10,6 +10,10 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     Kiwoom = Kiwoom()
     Mongo = Mongo()
 
-    Kiwoom.buy_stock('005930','','')
+    i = 0
+    for pred in Mongo.get_pred_close('20231025', 5000):
+        i = i + 1
+        print(i)
+
 
     app.exec_()

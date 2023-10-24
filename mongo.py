@@ -173,7 +173,10 @@ class Mongo():
         coll = self.db["predict"]
 
         filter = {
-            '_id.date': dateStr
+                '_id.date': dateStr, 
+                'pred_fluctuation_rate': {
+                    '$gt': 0
+                }
             }
         project = {
             'pred_close': 1,
@@ -189,6 +192,25 @@ class Mongo():
             projection = project,
             sort = sort,
             limit = limit
+        )
+
+        return result
+    
+    def get_kospi_pred_close(self, dateStr):
+        coll = self.db["predict"]
+
+        filter = {
+            '_id.date': dateStr,
+            '_id.code': "KOSPI"
+            }
+        project = {
+            'pred_close': 1,
+            'pred_fluctuation_rate': 1, 
+            '_id.code': 1
+            }
+        result = coll.find_one(
+            filter = filter,
+            projection = project
         )
 
         return result
