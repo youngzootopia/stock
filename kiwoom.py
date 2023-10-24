@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import time
 import pandas as pd
 
+import fid_codes
+
 class Kiwoom(QAxWidget):
     def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요
         super().__init__()
@@ -28,6 +30,8 @@ class Kiwoom(QAxWidget):
     def _set_signal_slots(self): 
         self.OnEventConnect.connect(self._login_slot) # connect시 _login_slot 슬롯 함수 호출
         self.OnReceiveTrData.connect(self._on_receive_tr_data) # TR 조회 슬롯 함수 호출
+        self.OnReceiveMsg.connect(self._on_receive_msg) # TR 조회 응답 및 주문에 대한 메세지 수신
+        self.OnReceiveChejanData.connect(self._on_receive_chejan) # 주문 접수 및 체결에 대한 응답
 
     # 로그인 응답 slot 함수
     def _login_slot(self, err_code): 
@@ -116,6 +120,30 @@ class Kiwoom(QAxWidget):
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
         time.sleep(1)
 
+    # 주문 TR 조회 응답 및 주문에 대한 메세지
+    def _on_receive_msg(self, screen_no, rqname, trcode, msg):
+        print(screen_no, rqname, trcode, msg)
+
+    # 주문 접수 및 체결에 대한 응답
+    # gubun: 주문 접수 및 체결까지 GetChejanData 3번 수신(접수: 0, 체결: 0, 잔고 이동: 1)
+    # cnt: 주문 접수 및 체결 시 얻는 항목의 개수
+    # fid_list FID의 경우 키움API에서 미리 정의된 코드 값
+    def _on_receive_chejan(self, gubun, cnt, fid_list):
+        print(gubun, cnt, fid_list)
+
+        for fid in fid_list.split(";"):
+            # FID 9001 = 종목 코드, 결과의 경우 문자+종목코드 이므로 문자 제외하고 슬라이싱
+            code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
+            data = self.dynamicCall("GetChejanData(int)", fid).lstrip("+").lstrip("-")
+            print (fid)
+            # 모든 데이터는 문자열이기 때문에 가격 같이 정수형인 경우 정수 변환
+            if data.isdigit():
+                data = int(data)
+
+            name = fid_codes.FID_CODES[fid]
+            print("{} : {}".format(name, data))
+
+
     def _comm_connect(self):
         self.dynamicCall("CommConnect()") # QAxWidget 클래스 내 함수
         self.login_event_loop = QEventLoop()
@@ -125,7 +153,7 @@ class Kiwoom(QAxWidget):
     def get_account_number(self): 
         account_list = self.dynamicCall("GetLoginInfo(QString)", "ACCLIST")
         account_number = account_list.split(';')[0]
-        # print("나의 계좌 번호:", account_number)
+        print("나의 계좌 번호:", account_number)
         return account_number
     
     # 종목 코드 가져오기: market_type: 0: 코스피, 10: 코스닥
@@ -207,7 +235,7 @@ class Kiwoom(QAxWidget):
         return total
     
     def buy_stock(self, code, price, quantity):
-        stock_account = self.get_account_number()
+        stock_account = self.account_number
 
         price = 0 if price == "" else price
         division = "03" if price == "" or price == 0 else "00" # 가격 입력 되지 않았거나, 0원 일 때
