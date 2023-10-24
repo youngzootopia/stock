@@ -161,10 +161,6 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     XKRX = xcals.get_calendar("XKRX")
     next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
     report_close_pred(next_open)
-   
-
-
-
 
     app.exec_()
     

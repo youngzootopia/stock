@@ -125,7 +125,7 @@ class Kiwoom(QAxWidget):
     def get_account_number(self): 
         account_list = self.dynamicCall("GetLoginInfo(QString)", "ACCLIST")
         account_number = account_list.split(';')[0]
-        print("나의 계좌 번호:", account_number)
+        # print("나의 계좌 번호:", account_number)
         return account_number
     
     # 종목 코드 가져오기: market_type: 0: 코스피, 10: 코스닥
@@ -209,9 +209,8 @@ class Kiwoom(QAxWidget):
     def buy_stock(self, code, price, quantity):
         stock_account = self.get_account_number()
 
-        code = "005930" if code == "" else code
         price = 0 if price == "" else price
-        division = "03" if price == "" else "00"
+        division = "03" if price == "" or price == 0 else "00" # 가격 입력 되지 않았거나, 0원 일 때
         quantity = 1 if quantity == "" else quantity
 
         ''' sRQName	사용자가 임의로 지정할 수 있는 이름입니다. (예: "삼성전자주문")
@@ -224,4 +223,6 @@ class Kiwoom(QAxWidget):
             sHogaGb	'00': 지정가, '03': 시장가
             sOrgOrderNo	원주문번호로 주문 정정시 사용합니다.
         '''
-        self.SendOrder("시장가매수", "0101", stock_account, 1, "005930", 10, price, division, "")
+        self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매수", "0150", stock_account, 1, code, quantity, price, division, ""])
+
+        time.sleep(1) # 초당 5번 주문 가능
