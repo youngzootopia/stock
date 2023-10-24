@@ -21,6 +21,10 @@ def buy_predict_stock(dateStr, limit):
 
         Kiwoom.buy_stock(pred['_id']['code'], 0, 1) # 시장가, 1개 주문
 
+    # 미체결 요청 가져오기
+    orders = Kiwoom.get_order()
+    print(orders)
+
 def sell_stock():
     # 잔고 얻어오기 opw00018
     print()
