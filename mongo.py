@@ -176,6 +176,9 @@ class Mongo():
                 '_id.date': dateStr, 
                 'pred_fluctuation_rate': {
                     '$gt': 0
+                },
+                'pred_close': {
+                    '$gt': 1500 # 모의 투자에서는 현재가 1000원 이하 주문 불가
                 }
             }
         project = {
@@ -184,7 +187,8 @@ class Mongo():
             '_id.code': 1
             }
         sort = list({
-            'pred_fluctuation_rate': -1
+            'pred_fluctuation_rate': -1,
+            'pred_close': 1
             }.items())
 
         result = coll.find(

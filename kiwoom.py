@@ -116,9 +116,6 @@ class Kiwoom(QAxWidget):
                 stock["_id"] = {"code": code, "date": date}
                 total.append(stock)
             self.tr_data = total
-        elif rqname == "opw00001_req": # 예수금 가져오기
-            deposit = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "주문가능금액")
-            self.tr_data = int(deposit)
 
         elif rqname == "opt10075_req": # 미체결 요청
             box = []
@@ -141,10 +138,6 @@ class Kiwoom(QAxWidget):
                 box.append([code, code_name, order_number, order_status, order_quantity, order_price, current_price, order_type, left_quantity, executed_quantity, orderd_at, fee, tax])
             self.tr_data = box
 
-
-            deposit = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "주문가능금액")
-            self.tr_data = int(deposit)
-
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
         time.sleep(1)
 
@@ -163,13 +156,21 @@ class Kiwoom(QAxWidget):
             # FID 9001 = 종목 코드, 결과의 경우 문자+종목코드 이므로 문자 제외하고 슬라이싱
             code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
             data = self.dynamicCall("GetChejanData(int)", fid).lstrip("+").lstrip("-")
-            print (fid)
             # 모든 데이터는 문자열이기 때문에 가격 같이 정수형인 경우 정수 변환
             if data.isdigit():
                 data = int(data)
-
-            name = fid_codes.FID_CODES[fid]
-            print("{} : {}".format(name, data))
+            
+            # 관리자사번, 주문업무분류(JJ:주식주문, FJ:선물옵션, JG:주식잔고, FG:선물옵션잔고), (최우선)매도호가, (최우선)매수호가, 단위체결가, 단위체결량 거부사유 화면번호
+            if fid in "9205 912 27 28 914 915 919 920" :
+                continue
+            # FID 모름
+            if fid in "921 922 923 949 10010 969 819 306 305  970 10012 10025 10011 924":
+                continue 
+            try:
+                name = fid_codes.FID_CODES[fid]
+                print("{} : {}".format(name, data))
+            except KeyError:
+                print("FID {} 는 정의되지 않았습니다.".format(fid))
 
 
     def _comm_connect(self):
@@ -216,15 +217,6 @@ class Kiwoom(QAxWidget):
             time.sleep(5)
 
         return total
-    
-    # 예수금 가져오기
-    def get_deposit(self):
-        self.dynamicCall("SetInputValue(QString, QString)", "계좌번호", self.account_number)
-        self.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "00")
-        self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
-        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00001_req", "opw00001", 0, "0004")
-        self.tr_event_loop.exec()
-        return self.tr_data
     
     # 일별 주가 요청
     def get_day_price(self, code, req_date):
@@ -288,7 +280,7 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SetInputValue(QString, QString)", "계좌번호", self.account_number)
         self.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "00")
         self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
-        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00001", "opw00001_req", 0, "0002")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00001_req", "opw00001", 0, "0502")
 
         self.tr_event_loop.exec()
         return self.tr_data
@@ -299,7 +291,7 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SetInputValue(QString, QString)", "전체종목구분", "0")
         self.dynamicCall("SetInputValue(QString, QString)", "체결구분", "0") # 0: 전체, 1: 미체결, 2: 체결
         self.dynamicCall("SetInputValue(QString, QString)", "매매구분", "0") # 0: 전체, 1: 매도, 2: 매수
-        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10075", "opt10075_req", 0, "0002")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10075_req", "opt10075", 0, "0902")
 
         self.tr_event_loop.exec()
         return self.tr_data
