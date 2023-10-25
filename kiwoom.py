@@ -20,6 +20,7 @@ class Kiwoom(QAxWidget):
         self._set_signal_slots() # 로그인용 슬롯 등록
         self._comm_connect()
         self.account_number = self.get_account_number() # 계좌번호 가져오기
+        self.universe_realtime_transaction_info = [] # 실시간 체결정보 가져올 종목코드 리스트
         self.tr_event_loop = QEventLoop()
 
     # 키움 증권 로그인 API
@@ -32,6 +33,7 @@ class Kiwoom(QAxWidget):
         self.OnReceiveTrData.connect(self._on_receive_tr_data) # TR 조회 슬롯 함수 호출
         self.OnReceiveMsg.connect(self._on_receive_msg) # TR 조회 응답 및 주문에 대한 메세지 수신
         self.OnReceiveChejanData.connect(self._on_receive_chejan) # 주문 접수 및 체결에 대한 응답
+        self.OnReceiveRealData.connect(self._on_receive_real_data) # 실시간 응답
 
     # 로그인 응답 slot 함수
     def _login_slot(self, err_code): 
@@ -172,6 +174,28 @@ class Kiwoom(QAxWidget):
             except KeyError:
                 print("FID {} 는 정의되지 않았습니다.".format(fid))
 
+    # 실시간 체결 정보 응답 슬롯
+    def _on_receive_real_data(self, s_code, real_type, real_data):
+        if real_type == "장시작시간":
+            pass
+        elif real_type == "주식체결":
+            signed_at = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결시간"))
+            close = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("현재가"))
+            close = abs(int(close))
+            high = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("고가"))
+            high = abs(int(high))
+            open = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("시가"))
+            open = abs(int(open))
+            low = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("저가"))
+            low = abs(int(low))
+            accum_volume = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("누적거래량"))
+            accum_volume = abs(int(accum_volume))
+
+            self.universe_realtime_transaction_info.append([s_code, signed_at, close, high, open, low, accum_volume])
+            print(s_code, signed_at, close, high, open, low, accum_volume)
+
+            
+
 
     def _comm_connect(self):
         self.dynamicCall("CommConnect()") # QAxWidget 클래스 내 함수
@@ -296,5 +320,11 @@ class Kiwoom(QAxWidget):
         self.tr_event_loop.exec()
         return self.tr_data
 
+    # 실시간 체결 정보 등록, 주식 시세는 체결과 관계 없이 시세가 변할 때이므로 체결 정보로 현재가 가져와야 함
+    # list의 경우 ; 구분자
+    # opt_type의 경우 같은 화면에서 최초 등록의 경우 0, 그 이후 1 -> 처음부터 1로 해도 동작 함
+    def set_real_reg(self, str_screen_no, str_code_list, str_fid_list, str_opt_type):
+        self.dynamicCall("SetRealReg(QString, QString, QString, QString)", str_screen_no, str_code_list, str_fid_list, str_opt_type)
 
+        time.sleep(1)
 

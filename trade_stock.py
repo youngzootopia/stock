@@ -6,6 +6,7 @@ from kiwoom import Kiwoom
 from mongo import Mongo
 from ml_stock import Ml_stock
 from teleBot import TeleBot
+import fid_codes
 
 def buy_predict_stock(dateStr, limit):
     # 예수금 조회
@@ -29,6 +30,15 @@ def sell_stock():
     # 잔고 얻어오기 opw00018
     print()
 
+def register_real_stock_price(dateStr, limit):
+    code_list_str = ""
+
+    for pred in Mongo.get_pred_close(dateStr, limit):
+        code_list_str = code_list_str + pred['_id']['code'] + ";"
+
+    fids = fid_codes.get_fid("체결시간") # 현제 체결시간만 등록해도 모든 데이터 가져옴. 키움 API 업데이트에 따라 리스트로 만들어야 할 수 있음
+    Kiwoom.set_real_reg("9001", code_list_str, fids, "0")
+
 if __name__ == '__main__': # 중복 방지를 위해 사용
     # 키움 API 실행
     app = QApplication(sys.argv)
@@ -40,7 +50,9 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     XKRX = xcals.get_calendar("XKRX")
     openDate = XKRX.session_open(dateStr).strftime("%Y%m%d")
 
-    buy_predict_stock(openDate, 30)
+    # buy_predict_stock(openDate, 30)
+
+    register_real_stock_price(openDate, 30)
 
 
     app.exec_()
