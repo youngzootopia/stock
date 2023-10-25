@@ -157,7 +157,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
 
     dateStr = datetime.today().strftime("%Y%m%d")
 
-    # daily_load(dateStr)       
+    daily_load(dateStr)       
     
     XKRX = xcals.get_calendar("XKRX")
     next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
