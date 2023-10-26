@@ -30,14 +30,14 @@ def daily_load(start_date, end_date):
     # isNext = True
     for kospi in kospi_list:
         # 특정 종목부터 적재할 때
-        # if kospi == "466920":
+        # if kospi == "466810":
         #     isNext = False
 
         # if isNext:
         #     continue
 
         # 특정 종목까지만 적재할 때
-        # if kospi == "012800":
+        # if kospi == "466940":
         #     break
 
         print(kospi)
@@ -50,6 +50,15 @@ def daily_load(start_date, end_date):
                         stock_price = kospi_price
             else:
                 stock_price = Kiwoom.get_day_price(kospi, dateStr)
+
+                # 신규 상장 주식의 경우 코드네임 저장
+                if Mongo.get_stock_name(kospi) == "":
+                    code = {}
+                    code['_id'] = {}
+                    code['_id']['code'] = kospi
+                    code['name'] = Kiwoom.get_code_name(kospi)
+
+                    Mongo.insert_code_name(code)
             
             # 데이터가 있어야 하고, 시가가 0원 이상만 적재
             if len(stock_price) > 0 and stock_price['open'] > 0:
@@ -62,6 +71,7 @@ def daily_load(start_date, end_date):
                 next_open = XKRX.next_open(dateStr)
 
                 Ml_stock.predict_stock_close_price(kospi, next_open.strftime("%Y%m%d"))
+                
 
 # 2018~ 일괄 적재 완료.    
 def full_load():

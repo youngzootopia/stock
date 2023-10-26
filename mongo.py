@@ -104,6 +104,10 @@ class Mongo():
         coll = self.db["code"]
         result = coll.insert_many(arr)
 
+    def insert_code_name(self, code):
+        coll = self.db["code"]
+        result = coll.insert_one(code)        
+
     def insert_predict_price(self, predict_price):
         coll = self.db["predict"]
         try:
