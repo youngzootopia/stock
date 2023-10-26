@@ -8,52 +8,56 @@ from ml_stock import Ml_stock
 from teleBot import TeleBot
 import fid_codes
 
-def buy_predict_stock(dateStr, limit):
-    # 예수금 조회
-    deposit = Kiwoom.get_deposit()
-    print("예수금: ", deposit)
-    
-    # 매수 Strat
-    for pred in Mongo.get_pred_close(dateStr, limit):
 
-        # 실시간 체결 정보 가져오기 필요 -> SetRealReg 현재가 비교 및 매수 혹은 매도
+class Trade_stock():
+    def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요
+        app = QApplication(sys.argv)
+        self.Kiwoom = Kiwoom()
+        self.Mongo = Mongo()
+        self.TeleBot = TeleBot()
 
-        # OPT10075 TR 활용해서 미체결 요청 및 이미 주문한 주식의 경우 주문 X
+        dateStr = datetime.today().strftime("%Y%m%d")
+        XKRX = xcals.get_calendar("XKRX")
+        openDate = XKRX.session_open(dateStr).strftime("%Y%m%d")
 
-        Kiwoom.buy_stock(pred['_id']['code'], 0, 1) # 시장가, 1개 주문
+        # buy_predict_stock(openDate, 30)
 
-    # 미체결 요청 가져오기
-    # orders = Kiwoom.get_order()
-    # print(orders)
+        self.register_real_stock_price(openDate, 30)
 
-def sell_stock():
-    # 잔고 얻어오기 opw00018
-    print()
-
-def register_real_stock_price(dateStr, limit):
-    code_list_str = ""
-
-    for pred in Mongo.get_pred_close(dateStr, limit):
-        code_list_str = code_list_str + pred['_id']['code'] + ";"
-
-    fids = fid_codes.get_fid("체결시간") # 현제 체결시간만 등록해도 모든 데이터 가져옴. 키움 API 업데이트에 따라 리스트로 만들어야 할 수 있음
-    Kiwoom.set_real_reg("9001", code_list_str, fids, "0")
-
-if __name__ == '__main__': # 중복 방지를 위해 사용
-    # 키움 API 실행
-    app = QApplication(sys.argv)
-    Kiwoom = Kiwoom()
-    Mongo = Mongo()
-    TeleBot = TeleBot()
-
-    dateStr = datetime.today().strftime("%Y%m%d")
-    XKRX = xcals.get_calendar("XKRX")
-    openDate = XKRX.session_open(dateStr).strftime("%Y%m%d")
-
-    # buy_predict_stock(openDate, 30)
-
-    register_real_stock_price(openDate, 30)
+        app.exec_()        
 
 
-    app.exec_()
-    
+    # 종목코드, 등락률, close(현재가)
+    def buy_stock(self, code, fluctuation_rate, close):
+        # 예수금 조회
+        deposit = self.Kiwoom.get_deposit()
+        print("예수금: ", deposit)
+
+        # 미체결 요청 가져오기
+        # orders = Kiwoom.get_order()
+        # print(orders)
+        
+        # 매수 Strat
+        # 만원어치 이상 구매
+        quantity = 1
+        while quantity * close < 10000:
+            quantity = quantity + 1
+
+        # 예수금이 남아 있어야 함
+        if deposit - 100000 > quantity * close:    
+            Kiwoom.buy_stock(code, close, quantity)    
+
+    def sell_stock(self):
+        # 잔고 얻어오기 opw00018
+        print()
+
+    def register_real_stock_price(self, dateStr, limit):
+        code_list_str = ""
+
+        for pred in self.Mongo.get_pred_close(dateStr, limit):
+            code_list_str = code_list_str + pred['_id']['code'] + ";"
+
+        fids = fid_codes.get_fid("체결시간") # 현제 체결시간만 등록해도 모든 데이터 가져옴. 키움 API 업데이트에 따라 리스트로 만들어야 할 수 있음
+        self.Kiwoom.set_real_reg("9001", code_list_str, fids, "0")
+
+Trade_stock = Trade_stock()

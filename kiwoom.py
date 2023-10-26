@@ -180,6 +180,7 @@ class Kiwoom(QAxWidget):
             pass
         elif real_type == "주식체결":
             signed_at = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결시간"))
+            fluctuation_rate = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("등락율"))
             close = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("현재가"))
             close = abs(int(close))
             high = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("고가"))
@@ -191,10 +192,8 @@ class Kiwoom(QAxWidget):
             accum_volume = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("누적거래량"))
             accum_volume = abs(int(accum_volume))
 
-            self.universe_realtime_transaction_info.append([s_code, signed_at, close, high, open, low, accum_volume])
-            print(s_code, signed_at, close, high, open, low, accum_volume)
-
-            
+            self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
+            print(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume)
 
 
     def _comm_connect(self):
@@ -324,6 +323,7 @@ class Kiwoom(QAxWidget):
     # list의 경우 ; 구분자
     # opt_type의 경우 같은 화면에서 최초 등록의 경우 0, 그 이후 1 -> 처음부터 1로 해도 동작 함
     def set_real_reg(self, str_screen_no, str_code_list, str_fid_list, str_opt_type):
+        print(str_code_list)
         self.dynamicCall("SetRealReg(QString, QString, QString, QString)", str_screen_no, str_code_list, str_fid_list, str_opt_type)
 
         time.sleep(1)
