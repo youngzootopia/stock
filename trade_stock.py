@@ -16,14 +16,6 @@ class Trade_stock():
         self.Mongo = Mongo()
         self.TeleBot = TeleBot()
 
-        dateStr = datetime.today().strftime("%Y%m%d")
-        XKRX = xcals.get_calendar("XKRX")
-        openDate = XKRX.session_open(dateStr).strftime("%Y%m%d")
-
-        # buy_predict_stock(openDate, 30)
-
-        self.register_real_stock_price(openDate, 30)
-
         app.exec_()        
 
 

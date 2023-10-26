@@ -1,18 +1,13 @@
-from PyQt5.QtWidgets import *
-import sys
-from kiwoom import Kiwoom
-from mongo import Mongo
-from ml_stock import Ml_stock
+from datetime import datetime
+import exchange_calendars as xcals
+from trade_stock import Trade_stock
+
 
 if __name__ == '__main__': # 중복 방지를 위해 사용
-    # app = QApplication(sys.argv)
-    # Kiwoom = Kiwoom()
-    # Mongo = Mongo()
-    Ml_stock = Ml_stock()
+    Trade_stock = Trade_stock()
 
-    Ml_stock.predict_stock_close_price("466810", '20231026')
+    dateStr = datetime.today().strftime("%Y%m%d")
+    XKRX = xcals.get_calendar("XKRX")
+    openDate = XKRX.session_open(dateStr).strftime("%Y%m%d")
 
-    # orders = Kiwoom.get_deposit()
-    # print(orders)
-
-    # app.exec_()
+    Trade_stock.register_real_stock_price(openDate, 30)
