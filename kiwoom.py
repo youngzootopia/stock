@@ -181,6 +181,7 @@ class Kiwoom(QAxWidget):
         elif real_type == "주식체결":
             signed_at = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결시간"))
             fluctuation_rate = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("등락율"))
+            fluctuation_rate = float(fluctuation_rate)
             close = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("현재가"))
             close = abs(int(close))
             high = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("고가"))
@@ -193,7 +194,8 @@ class Kiwoom(QAxWidget):
             accum_volume = abs(int(accum_volume))
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
-            print(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume)
+            if fluctuation_rate > 0:
+                print(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume)
 
 
     def _comm_connect(self):

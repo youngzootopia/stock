@@ -10,14 +10,10 @@ import fid_codes
 
 
 class Trade_stock():
-    def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요
-        app = QApplication(sys.argv)
+    def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요        
         self.Kiwoom = Kiwoom()
         self.Mongo = Mongo()
         self.TeleBot = TeleBot()
-
-        app.exec_()        
-
 
     # 종목코드, 등락률, close(현재가)
     def buy_stock(self, code, fluctuation_rate, close):
@@ -51,5 +47,3 @@ class Trade_stock():
 
         fids = fid_codes.get_fid("체결시간") # 현제 체결시간만 등록해도 모든 데이터 가져옴. 키움 API 업데이트에 따라 리스트로 만들어야 할 수 있음
         self.Kiwoom.set_real_reg("9001", code_list_str, fids, "0")
-
-Trade_stock = Trade_stock()
