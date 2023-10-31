@@ -183,6 +183,9 @@ class Mongo():
                 },
                 'pred_close': {
                     '$gt': 1500 # 모의 투자에서는 현재가 1000원 이하 주문 불가
+                },
+                'pred_fluctuation_rate': {
+                    '$lt': 30 # 정리 매매의 경우 기존 종가가 너무 높을 수 있기 때문에 예측값이 크게 나옴
                 }
             }
         project = {
