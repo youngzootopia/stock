@@ -196,6 +196,7 @@ class Kiwoom(QAxWidget):
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
             if fluctuation_rate > 0:
                 print(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume)
+                self.buy_stock(s_code, close, 1) 
 
 
     def _comm_connect(self):
