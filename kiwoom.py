@@ -6,6 +6,7 @@ import time
 import pandas as pd
 
 import fid_codes
+import trade_algorithm
 
 class Kiwoom(QAxWidget):
     def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요
@@ -195,8 +196,8 @@ class Kiwoom(QAxWidget):
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
             if fluctuation_rate > 0:
-                print(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume)
-                self.buy_stock(s_code, close, 1) 
+                # print(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume)
+                self.buy_stock(s_code, close, trade_algorithm.get_quantity(self.get_deposit(), s_code, close)) 
 
 
     def _comm_connect(self):
