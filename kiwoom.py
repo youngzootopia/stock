@@ -22,6 +22,7 @@ class Kiwoom(QAxWidget):
         self._comm_connect()
         self.account_number = self.get_account_number() # 계좌번호 가져오기
         self.universe_realtime_transaction_info = [] # 실시간 체결정보 가져올 종목코드 리스트
+        self.stock_dict = {}
         self.tr_event_loop = QEventLoop()
 
     # 키움 증권 로그인 API
@@ -326,9 +327,17 @@ class Kiwoom(QAxWidget):
     # 실시간 체결 정보 등록, 주식 시세는 체결과 관계 없이 시세가 변할 때이므로 체결 정보로 현재가 가져와야 함
     # list의 경우 ; 구분자
     # opt_type의 경우 같은 화면에서 최초 등록의 경우 0, 그 이후 1 -> 처음부터 1로 해도 동작 함
-    def set_real_reg(self, str_screen_no, str_code_list, str_fid_list, str_opt_type):
-        print(str_code_list)
-        self.dynamicCall("SetRealReg(QString, QString, QString, QString)", str_screen_no, str_code_list, str_fid_list, str_opt_type)
+    def set_real_reg(self, str_screen_no, str_code_list, str_fid_list, str_opt_type, stock_dict):        
+        # print(str_code_list)
 
+        # 주식 딕셔너리 초기화
+        if len(self.stock_dict) == 0:
+            self.stock_dict = stock_dict
+        else:
+            for key in stock_dict.keys():
+                self.stock_dict[key] = stock_dict[key]
+
+        self.dynamicCall("SetRealReg(QString, QString, QString, QString)", str_screen_no, str_code_list, str_fid_list, str_opt_type)
+        
         time.sleep(1)
 

@@ -28,7 +28,8 @@ class Trade_stock():
             stock['quantity'] = 0
             stock_dict[pred['_id']['code']] = stock
                     
-        print(stock_dict)
+        # print(stock_dict)
 
         fids = fid_codes.get_fid("체결시간") # 현제 체결시간만 등록해도 모든 데이터 가져옴. 키움 API 업데이트에 따라 리스트로 만들어야 할 수 있음
-        self.Kiwoom.set_real_reg("9001", code_list_str, fids, "0")
+        
+        self.Kiwoom.set_real_reg("9001", code_list_str, fids, "0", stock_dict)
