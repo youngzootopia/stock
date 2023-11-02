@@ -172,9 +172,10 @@ class Kiwoom(QAxWidget):
             if fid in "921 922 923 949 10010 969 819 306 305  970 10012 10025 10011 924":
                 continue 
             try:
-                if fid == '930':
+                if fid == '930' and data > 0: # 보유수량
                     self.stock_dict[code]['quantity'] = data
 
+                    # 매도 테스트용 코드 
                     self.sell_stock(code, '', data)
 
                 name = fid_codes.FID_CODES[fid]
@@ -203,15 +204,17 @@ class Kiwoom(QAxWidget):
             accum_volume = abs(int(accum_volume))
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
+            self.stock_dict[s_code]['fluctuation_rate'] = fluctuation_rate
+            self.stock_dict[s_code]['close'] = close
 
             if fluctuation_rate > 0 and self.stock_dict[s_code]['order_quantity'] == 0:
                 print(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume)
-                quantity = trade_algorithm.get_quantity(self.deposit, s_code, close)
-                self.stock_dict[s_code]['order_quantity'] = self.stock_dict[s_code]['order_quantity'] + quantity
-                self.deposit = self.deposit - (close * quantity)
+                buy_quantity = trade_algorithm.get_buy_quantity(self.deposit, close, self.stock_dict[s_code])
+                if buy_quantity != -1: # -1의 경우 예수금 부족 혹은 매수 가치 없음
+                    self.stock_dict[s_code]['order_quantity'] = self.stock_dict[s_code]['order_quantity'] + buy_quantity
+                    self.deposit = self.deposit - (close * buy_quantity)
 
-            
-                self.buy_stock(s_code, close, quantity) 
+                    self.buy_stock(s_code, close, buy_quantity) 
 
 
     def _comm_connect(self):
