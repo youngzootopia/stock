@@ -26,9 +26,16 @@ class Trade_stock():
             stock['pred_fluctuation_rate'] = pred['pred_fluctuation_rate']
             stock['pred_close'] = pred['pred_close']
             stock['quantity'] = 0
+            stock['order_quantity'] = 0
             stock_dict[pred['_id']['code']] = stock
                     
         # print(stock_dict)
+        code_list_str = code_list_str + "432720;"
+        stock['pred_fluctuation_rate'] = 19
+        stock['pred_close'] = 25000
+        stock['quantity'] = 0
+        stock['order_quantity'] = 0
+        stock_dict['432720'] = stock
 
         fids = fid_codes.get_fid("체결시간") # 현제 체결시간만 등록해도 모든 데이터 가져옴. 키움 API 업데이트에 따라 리스트로 만들어야 할 수 있음
         

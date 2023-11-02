@@ -24,6 +24,7 @@ class Kiwoom(QAxWidget):
         self.universe_realtime_transaction_info = [] # 실시간 체결정보 가져올 종목코드 리스트
         self.stock_dict = {}
         self.tr_event_loop = QEventLoop()
+        self.deposit = self.get_deposit() # 예수금 가져오기
 
     # 키움 증권 로그인 API
     def _make_kiwoom_instance(self):
@@ -171,10 +172,16 @@ class Kiwoom(QAxWidget):
             if fid in "921 922 923 949 10010 969 819 306 305  970 10012 10025 10011 924":
                 continue 
             try:
+                if fid == '930':
+                    self.stock_dict[code]['quantity'] = data
+
+                    self.sell_stock(code, '', data)
+
                 name = fid_codes.FID_CODES[fid]
                 print("{} : {}".format(name, data))
             except KeyError:
                 print("FID {} 는 정의되지 않았습니다.".format(fid))
+            
 
     # 실시간 체결 정보 응답 슬롯
     def _on_receive_real_data(self, s_code, real_type, real_data):
@@ -196,9 +203,15 @@ class Kiwoom(QAxWidget):
             accum_volume = abs(int(accum_volume))
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
-            if fluctuation_rate > 0:
-                # print(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume)
-                self.buy_stock(s_code, close, trade_algorithm.get_quantity(self.get_deposit(), s_code, close)) 
+
+            if fluctuation_rate > 0 and self.stock_dict[s_code]['order_quantity'] == 0:
+                print(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume)
+                quantity = trade_algorithm.get_quantity(self.deposit, s_code, close)
+                self.stock_dict[s_code]['order_quantity'] = self.stock_dict[s_code]['order_quantity'] + quantity
+                self.deposit = self.deposit - (close * quantity)
+
+            
+                self.buy_stock(s_code, close, quantity) 
 
 
     def _comm_connect(self):
@@ -301,6 +314,29 @@ class Kiwoom(QAxWidget):
         '''
         self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매수", "0150", stock_account, 1, code, quantity, price, division, ""])
 
+        print("{} 매수".format(code))
+        time.sleep(1) # 초당 5번 주문 가능
+
+    def sell_stock(self, code, price, quantity):
+        stock_account = self.account_number
+
+        price = 0 if price == "" else price
+        division = "03" if price == "" or price == 0 else "00" # 가격 입력 되지 않았거나, 0원 일 때
+        quantity = 1 if quantity == "" else quantity
+
+        ''' sRQName	사용자가 임의로 지정할 수 있는 이름입니다. (예: "삼성전자주문")
+            sScreenNO	화면번호로 "0"을 제외한 4자리의 문자열을 사용합니다. (예: "1000")
+            sAccNo	계좌번호입니다. (예: "8140977311")
+            nOrderType	주문유형입니다. (1: 매수, 2: 매도, 3: 매수취소, 4: 매도취소, 5: 매수정정, 6: 매도 정정)
+            sCode	매매할 주식의 종목코드입니다.
+            nQty	주문수량입니다.
+            nPrice	주문단가입니다.
+            sHogaGb	'00': 지정가, '03': 시장가
+            sOrgOrderNo	원주문번호로 주문 정정시 사용합니다.
+        '''
+        self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매도", "0151", stock_account, 2, code, quantity, price, division, ""])
+
+        print("{} 매수".format(code))
         time.sleep(1) # 초당 5번 주문 가능
 
     # 예수금 가져오기
