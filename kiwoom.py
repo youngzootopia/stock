@@ -25,6 +25,7 @@ class Kiwoom(QAxWidget):
         self.stock_dict = {}
         self.tr_event_loop = QEventLoop()
         self.deposit = self.get_deposit() # 예수금 가져오기
+        self.order_list = self.get_order() # 체결리스트 가져오기 
 
     # 키움 증권 로그인 API
     def _make_kiwoom_instance(self):
@@ -143,6 +144,20 @@ class Kiwoom(QAxWidget):
                 box.append([code, code_name, order_number, order_status, order_quantity, order_price, current_price, order_type, left_quantity, executed_quantity, orderd_at, fee, tax])
             self.tr_data = box
 
+        elif rqname == "opw00018_req": # 잔고 가져오기
+            total = []
+            for i in range(cnt):
+                code = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "종목번호").strip()[1:] 
+                buy_close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "매입금액").strip())
+                available_quantity = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "매매가능수량").strip())
+
+                stock = {}
+                stock['code'] = code
+                stock['buy_close'] = buy_close
+                stock['available_quantity'] = available_quantity
+                total.append(stock)
+            self.tr_data = total
+
         self.tr_event_loop.exit() # 슬롯 응답 대기 종료
         time.sleep(1)
 
@@ -175,9 +190,6 @@ class Kiwoom(QAxWidget):
                 if fid == '930' and data > 0: # 보유수량
                     self.stock_dict[code]['quantity'] = data
 
-                    # 매도 테스트용 코드 
-                    self.sell_stock(code, '', data)
-
                 name = fid_codes.FID_CODES[fid]
                 print("{} : {}".format(name, data))
             except KeyError:
@@ -207,14 +219,36 @@ class Kiwoom(QAxWidget):
             self.stock_dict[s_code]['fluctuation_rate'] = fluctuation_rate
             self.stock_dict[s_code]['close'] = close
 
-            if fluctuation_rate > 0 and self.stock_dict[s_code]['order_quantity'] == 0:
-                print(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume)
-                buy_quantity = trade_algorithm.get_buy_quantity(self.deposit, close, self.stock_dict[s_code])
-                if buy_quantity != -1: # -1의 경우 예수금 부족 혹은 매수 가치 없음
-                    self.stock_dict[s_code]['order_quantity'] = self.stock_dict[s_code]['order_quantity'] + buy_quantity
-                    self.deposit = self.deposit - (close * buy_quantity)
+            # 매수
+            try:
+                if fluctuation_rate > 0 and self.stock_dict[s_code]['order_quantity'] == 0:
+                    print("매수: {}, {}, {}, {}, {}, {}, {}, {}".format(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume))
 
-                    self.buy_stock(s_code, close, buy_quantity) 
+                    buy_quantity = 0
+
+                    for order in self.order_list:
+                        if s_code == order[0] and order[7] == '매수' and int(order[9]) > 0: # 매수 체결량 0 보다 큰 경우 매수 안함
+                            print("매수 완료 건")
+                            buy_quantity = -2 
+                            break
+
+                    if buy_quantity != -2: # 매수 완료 건 매수 안함 
+                        buy_quantity = trade_algorithm.get_buy_quantity(self.deposit, close, self.stock_dict[s_code])
+                        if buy_quantity != -1: # -1의 경우 예수금 부족 혹은 매수 가치 없음
+                            self.stock_dict[s_code]['order_quantity'] = self.stock_dict[s_code]['order_quantity'] + buy_quantity
+                            self.deposit = self.deposit - (close * buy_quantity)
+
+                            self.buy_stock(s_code, close, buy_quantity) 
+            except KeyError:
+                print("매수 종목 아님")
+
+            # 잔고 매도
+            try:
+                if ((close / self.stock_dict[s_code]['buy_close'] * 100) > 5 or (close / self.stock_dict[s_code]['buy_close'] * 100) < -3)and self.stock_dict[s_code]['available_quantity'] > 0: # 5% 익절 or -3% 손절
+                    print("매도: {}, {}, {}, {}, {}, {}, {}, {}".format(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume))
+                    self.sell_stock(s_code, '', self.stock_dict[s_code]['quantity'])
+            except KeyError:
+                print("잔고 없음")
 
 
     def _comm_connect(self):
@@ -317,7 +351,6 @@ class Kiwoom(QAxWidget):
         '''
         self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매수", "0150", stock_account, 1, code, quantity, price, division, ""])
 
-        print("{} 매수".format(code))
         time.sleep(1) # 초당 5번 주문 가능
 
     def sell_stock(self, code, price, quantity):
@@ -362,6 +395,29 @@ class Kiwoom(QAxWidget):
 
         self.tr_event_loop.exec()
         return self.tr_data
+    
+    # 잔고 요청
+    def get_balance(self):
+        self.dynamicCall("SetInputValue(QString, QString)", "계좌번호", self.account_number)
+        self.dynamicCall("SetInputValue(QString, QString)", "비밀번호매체구분", "00")
+        self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00018_req", "opw00018", 0, "0903")
+
+        self.tr_event_loop.exec_()
+        time.sleep(5)
+
+        total = self.tr_data
+
+        while self.isNext:
+            self.dynamicCall("SetInputValue(QString, QString)", "계좌번호", self.account_number)
+            self.dynamicCall("SetInputValue(QString, QString)", "비밀번호매체구분", "00")
+            self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
+            self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00018_req", "opw00018", 0, "0903")
+            self.tr_event_loop.exec_()
+            total += self.tr_data
+            time.sleep(5)
+
+        return total
 
     # 실시간 체결 정보 등록, 주식 시세는 체결과 관계 없이 시세가 변할 때이므로 체결 정보로 현재가 가져와야 함
     # list의 경우 ; 구분자

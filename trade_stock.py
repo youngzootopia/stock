@@ -19,6 +19,8 @@ class Trade_stock():
         code_list_str = ""
 
         stock_dict = {}
+
+        # 예상 종목
         for pred in self.Mongo.get_pred_close(dateStr, limit):
             stock = {}
             code_list_str = code_list_str + pred['_id']['code'] + ";"
@@ -28,15 +30,18 @@ class Trade_stock():
             stock['quantity'] = 0
             stock['order_quantity'] = 0
             stock_dict[pred['_id']['code']] = stock
-                    
-        # print(stock_dict)
-        code_list_str = code_list_str + "432720;"
-        stock['pred_fluctuation_rate'] = 19
-        stock['pred_close'] = 25000
-        stock['quantity'] = 0
-        stock['order_quantity'] = 0
-        stock_dict['432720'] = stock
+
+        # 잔고 
+        for balance_stock in self.Kiwoom.get_balance():
+            stock = {}
+            code_list_str = code_list_str + balance_stock['code'] + ";"
+
+            stock['buy_close'] = balance_stock['buy_close']
+            stock['available_quantity'] = balance_stock['available_quantity']
+            stock_dict[balance_stock['code']] = stock
 
         fids = fid_codes.get_fid("체결시간") # 현제 체결시간만 등록해도 모든 데이터 가져옴. 키움 API 업데이트에 따라 리스트로 만들어야 할 수 있음
+
+        print(stock_dict)
         
         self.Kiwoom.set_real_reg("9001", code_list_str, fids, "0", stock_dict)
