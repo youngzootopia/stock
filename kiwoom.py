@@ -191,7 +191,7 @@ class Kiwoom(QAxWidget):
                     self.stock_dict[code]['quantity'] = data
 
                 name = fid_codes.FID_CODES[fid]
-                print("{} : {}".format(name, data))
+                # print("{} : {}".format(name, data))
             except KeyError:
                 print("FID {} 는 정의되지 않았습니다.".format(fid))
             
@@ -222,13 +222,13 @@ class Kiwoom(QAxWidget):
             # 매수
             try:
                 if fluctuation_rate > 0 and self.stock_dict[s_code]['order_quantity'] == 0:
-                    print("매수: {}, {}, {}, {}, {}, {}, {}, {}".format(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume))
+                    # print("매수: {}, {}, {}, {}, {}, {}, {}, {}".format(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume))
 
                     buy_quantity = 0
 
                     for order in self.order_list:
                         if s_code == order[0] and order[7] == '매수' and int(order[9]) > 0: # 매수 체결량 0 보다 큰 경우 매수 안함
-                            print("매수 완료 건")
+                            # print("매수 완료 건")
                             buy_quantity = -2 
                             break
 
@@ -240,15 +240,15 @@ class Kiwoom(QAxWidget):
 
                             self.buy_stock(s_code, close, buy_quantity) 
             except KeyError:
-                print("매수 종목 아님")
+                print("{} 매수 종목 아님".format(s_code))
 
             # 잔고 매도
             try:
                 if ((close / self.stock_dict[s_code]['buy_close'] * 100) > 5 or (close / self.stock_dict[s_code]['buy_close'] * 100) < -3)and self.stock_dict[s_code]['available_quantity'] > 0: # 5% 익절 or -3% 손절
-                    print("매도: {}, {}, {}, {}, {}, {}, {}, {}".format(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume))
+                    # print("매도: {}, {}, {}, {}, {}, {}, {}, {}".format(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume))
                     self.sell_stock(s_code, '', self.stock_dict[s_code]['quantity'])
             except KeyError:
-                print("잔고 없음")
+                print("{} 잔고 없음".format(s_code))
 
 
     def _comm_connect(self):
@@ -412,7 +412,7 @@ class Kiwoom(QAxWidget):
             self.dynamicCall("SetInputValue(QString, QString)", "계좌번호", self.account_number)
             self.dynamicCall("SetInputValue(QString, QString)", "비밀번호매체구분", "00")
             self.dynamicCall("SetInputValue(QString, QString)", "조회구분", "2")
-            self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00018_req", "opw00018", 0, "0903")
+            self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00018_req", "opw00018", 2, "0903")
             self.tr_event_loop.exec_()
             total += self.tr_data
             time.sleep(5)
