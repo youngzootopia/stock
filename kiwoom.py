@@ -176,9 +176,16 @@ class Kiwoom(QAxWidget):
         print(gubun, cnt, fid_list)
 
         code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
-        division = self.dynamicCall("GetChejanData(int)", "906") # 매도수 구분
-        self.dynamicCall("GetChejanData(int)", "9001")
-        self.dynamicCall("GetChejanData(int)", "9001")
+        name = self.dynamicCall("GetChejanData(int)", "302") # 종목명
+        division = self.dynamicCall("GetChejanData(int)", "906") # 매도수 구분, 1:매도, 2:매수
+        che = int(self.dynamicCall("GetChejanData(int)", "911").lstrip("+").lstrip("-")) # 체결량
+        price = int(self.dynamicCall("GetChejanData(int)", "901").lstrip("+").lstrip("-")) # 주문가격
+
+        if che > 0 and division == '2': # 매수 체결 시
+            self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] + che * price) / (self.stock_dict[code]['available_quantity'] + che) # 매수가격 수정
+            self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] + che # 주문가능 수량 수정
+            self.stock_dict[code]
+            TeleBot.report_message("{} 매수체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
 
 
         for fid in fid_list.split(";"):
@@ -195,8 +202,8 @@ class Kiwoom(QAxWidget):
             if fid in "921 922 923 949 10010 969 819 306 305  970 10012 10025 10011 924":
                 continue 
             try:
-                if fid == '930' and data > 0: # 보유수량
-                    self.stock_dict[code]['quantity'] = data
+                if fid == '911' and data > 0 and division == '2': # 매수 체결량
+                    self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] + data
 
                 name = fid_codes.FID_CODES[fid]
                 # print("{} : {}".format(name, data))
