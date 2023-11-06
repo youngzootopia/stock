@@ -29,6 +29,8 @@ class Trade_stock():
             stock['pred_close'] = pred['pred_close']
             stock['quantity'] = 0
             stock['order_quantity'] = 0
+            stock['buy_close'] = 0
+            stock['available_quantity'] = 0
             stock_dict[pred['_id']['code']] = stock
 
         # 잔고 
