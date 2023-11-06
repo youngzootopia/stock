@@ -7,6 +7,7 @@ import pandas as pd
 
 import fid_codes
 import trade_algorithm
+from teleBot import TeleBot
 
 class Kiwoom(QAxWidget):
     def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요
@@ -26,6 +27,8 @@ class Kiwoom(QAxWidget):
         self.tr_event_loop = QEventLoop()
         self.deposit = self.get_deposit() # 예수금 가져오기
         self.order_list = self.get_order() # 체결리스트 가져오기 
+        # 텔레그램 봇
+        teleBot = TeleBot()
 
     # 키움 증권 로그인 API
     def _make_kiwoom_instance(self):
@@ -148,7 +151,7 @@ class Kiwoom(QAxWidget):
             total = []
             for i in range(cnt):
                 code = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "종목번호").strip()[1:] 
-                buy_close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "매입금액").strip())
+                buy_close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "매입가").strip())
                 available_quantity = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "매매가능수량").strip())
 
                 stock = {}
@@ -172,9 +175,14 @@ class Kiwoom(QAxWidget):
     def _on_receive_chejan(self, gubun, cnt, fid_list):
         print(gubun, cnt, fid_list)
 
+        code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
+        division = self.dynamicCall("GetChejanData(int)", "906") # 매도수 구분
+        self.dynamicCall("GetChejanData(int)", "9001")
+        self.dynamicCall("GetChejanData(int)", "9001")
+
+
         for fid in fid_list.split(";"):
             # FID 9001 = 종목 코드, 결과의 경우 문자+종목코드 이므로 문자 제외하고 슬라이싱
-            code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
             data = self.dynamicCall("GetChejanData(int)", fid).lstrip("+").lstrip("-")
             # 모든 데이터는 문자열이기 때문에 가격 같이 정수형인 경우 정수 변환
             if data.isdigit():
@@ -240,15 +248,20 @@ class Kiwoom(QAxWidget):
 
                             self.buy_stock(s_code, close, buy_quantity) 
             except KeyError:
-                print("{} 매수 종목 아님".format(s_code))
+                pass
+                # print("{} 매수 종목 아님".format(s_code))
 
             # 잔고 매도
             try:
-                if ((close / self.stock_dict[s_code]['buy_close'] * 100) > 5 or (close / self.stock_dict[s_code]['buy_close'] * 100) < -3)and self.stock_dict[s_code]['available_quantity'] > 0: # 5% 익절 or -3% 손절
+                ror = (close - self.stock_dict[s_code]['buy_close']) / self.stock_dict[s_code]['buy_close'] * 100
+                print("{}: {} = {}, {}".format(s_code, ror, close, self.stock_dict[s_code]['buy_close']))
+
+                if (ror > 5 or ror < -3) and self.stock_dict[s_code]['available_quantity'] > 0: # 5% 익절 or -3% 손절
                     # print("매도: {}, {}, {}, {}, {}, {}, {}, {}".format(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume))
-                    self.sell_stock(s_code, '', self.stock_dict[s_code]['quantity'])
+                    self.sell_stock(s_code, '', self.stock_dict[s_code]['available_quantity'])
             except KeyError:
-                print("{} 잔고 없음".format(s_code))
+                pass
+                # print("{} 잔고 없음".format(s_code))
 
 
     def _comm_connect(self):
@@ -370,9 +383,9 @@ class Kiwoom(QAxWidget):
             sHogaGb	'00': 지정가, '03': 시장가
             sOrgOrderNo	원주문번호로 주문 정정시 사용합니다.
         '''
-        self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매도", "0151", stock_account, 2, code, quantity, price, division, ""])
+        self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매도", "0153", stock_account, 2, code, quantity, price, division, ""])
 
-        print("{} 매수".format(code))
+        print("{} 매도".format(code))
         time.sleep(1) # 초당 5번 주문 가능
 
     # 예수금 가져오기
