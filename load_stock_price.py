@@ -11,12 +11,12 @@ from mongo import Mongo
 from ml_stock import Ml_stock
 from teleBot import TeleBot
 
-@dispatch(str)
-def daily_load(start_date):
-    daily_load(start_date, start_date)
-
 @dispatch(str, str)
-def daily_load(start_date, end_date):
+def daily_load(start_date, code):
+    daily_load(start_date, start_date, code)
+
+@dispatch(str, str, str)
+def daily_load(start_date, end_date, code):
     # 종목 정보 가져오기
     kospi_list = Kiwoom.get_code_list_stok_market("0")
     # kosdak_list = Kiwoom.get_code_list_stok_market("10")
@@ -27,14 +27,14 @@ def daily_load(start_date, end_date):
     # 일별 적재
     stock_list = []
     date_list = pandas.date_range(start = start_date, end = end_date, freq = 'D')
-    # isNext = True
+    isNext = True if code != "" else False
     for kospi in kospi_list:
         # 특정 종목부터 적재할 때
-        # if kospi == "466810":
-        #     isNext = False
+        if kospi == code:
+            isNext = False
 
-        # if isNext:
-        #     continue
+        if isNext:
+            continue
 
         # 특정 종목까지만 적재할 때
         # if kospi == "466940":
@@ -166,8 +166,10 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     TeleBot = TeleBot()
 
     dateStr = datetime.today().strftime("%Y%m%d")
+    # dateStr = '20231106' # 특정날짜 적재 시 수정
+    code = '' # 특정 코드부터 적재 할 시 수정
 
-    daily_load(dateStr)       
+    daily_load(dateStr, code)       
     
     XKRX = xcals.get_calendar("XKRX")
     next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")

@@ -27,7 +27,6 @@ class Trade_stock():
         
             stock['pred_fluctuation_rate'] = pred['pred_fluctuation_rate']
             stock['pred_close'] = pred['pred_close']
-            stock['quantity'] = 0
             stock['order_quantity'] = 0
             stock['buy_close'] = 0
             stock['available_quantity'] = 0
