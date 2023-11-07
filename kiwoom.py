@@ -173,31 +173,32 @@ class Kiwoom(QAxWidget):
     # cnt: 주문 접수 및 체결 시 얻는 항목의 개수
     # fid_list FID의 경우 키움API에서 미리 정의된 코드 값
     def _on_receive_chejan(self, gubun, cnt, fid_list):
-        # print(gubun, cnt, fid_list)
+        if gubun == "1": # 잔고
+            print(gubun, cnt, fid_list)
+        elif gubun == "0": # 체결
+            code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
+            name = self.dynamicCall("GetChejanData(int)", "302") # 종목명
+            division = self.dynamicCall("GetChejanData(int)", "906") # 매도수 구분, 1:매도, 2:매수
+            che = self.dynamicCall("GetChejanData(int)", "911").lstrip("+").lstrip("-") # 체결량
+            price = self.dynamicCall("GetChejanData(int)", "901").lstrip("+").lstrip("-") # 주문가격
+            if che.isdigit() and price.isdigit():
+                che = int(che)
+                price = int(price)
+            else:
+                che = 0
+                price = 0
 
-        code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
-        name = self.dynamicCall("GetChejanData(int)", "302") # 종목명
-        division = self.dynamicCall("GetChejanData(int)", "906") # 매도수 구분, 1:매도, 2:매수
-        che = self.dynamicCall("GetChejanData(int)", "911").lstrip("+").lstrip("-") # 체결량
-        price = self.dynamicCall("GetChejanData(int)", "901").lstrip("+").lstrip("-") # 주문가격
-        if che.isdigit() and price.isdigit():
-            che = int(che)
-            price = int(price)
-        else:
-            che = 0
-            price = 0
+            if che > 0 and division == '2': # 매수 체결 시
+                self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] + che * price) / (self.stock_dict[code]['available_quantity'] + che) # 매수가격 수정
+                self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] + che # 주문가능 수량 수정
+                self.stock_dict[code]
+                TeleBot.report_message("{} 매수체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
 
-        if che > 0 and division == '2': # 매수 체결 시
-            self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] + che * price) / (self.stock_dict[code]['available_quantity'] + che) # 매수가격 수정
-            self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] + che # 주문가능 수량 수정
-            self.stock_dict[code]
-            TeleBot.report_message("{} 매수체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
-
-        if che > 0 and division == '1': # 매도 체결 시
-            self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] - che * price) / (self.stock_dict[code]['available_quantity'] - che) # 평균단가 수정
-            self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] - che # 주문가능 수량 수정
-            self.stock_dict[code]
-            TeleBot.report_message("{} 매도체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
+            if che > 0 and division == '1': # 매도 체결 시
+                self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] - che * price) / (self.stock_dict[code]['available_quantity'] - che) # 평균단가 수정
+                self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] - che # 주문가능 수량 수정
+                self.stock_dict[code]
+                TeleBot.report_message("{} 매도체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
 
 
         for fid in fid_list.split(";"):
@@ -277,14 +278,14 @@ class Kiwoom(QAxWidget):
                     ror = 0
                 else:
                     ror = (close - self.stock_dict[s_code]['buy_close']) / self.stock_dict[s_code]['buy_close'] * 100
-                print("{}: {} = {}, {}".format(s_code, ror, close, self.stock_dict[s_code]['buy_close']))
+                print("{}: ROR {} = 현재가 {}, 매입가 {}, 매도가능수량 {}".format(s_code, ror, close, self.stock_dict[s_code]['buy_close'], self.stock_dict[s_code]['available_quantity']))
 
                 if (ror > 5 or ror < -3) and self.stock_dict[s_code]['available_quantity'] > 0: # 5% 익절 or -3% 손절
                     # print("매도: {}, {}, {}, {}, {}, {}, {}, {}".format(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume))
                     self.sell_stock(s_code, '', self.stock_dict[s_code]['available_quantity'])
-            except KeyError:
-                pass
-                # print("{} 잔고 없음".format(s_code))
+            except KeyError as e:
+                # pass
+                print(e)
 
 
     def _comm_connect(self):
