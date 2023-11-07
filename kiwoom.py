@@ -193,12 +193,14 @@ class Kiwoom(QAxWidget):
             if che > 0 and division == '2': # 매수 체결 시
                 self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] + che * price) / (self.stock_dict[code]['available_quantity'] + che) # 매수가격 수정
                 self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] + che # 주문가능 수량 수정
-                TeleBot.report_message("{} 매수체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
+                self.stock_dict[code]['order_quantity'] = 0 # 주문 체결 시 0으로 초기화 하여야 당일 매수/매도 가능함
+                self.teleBot.report_message("{} 매수체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
 
             if che > 0 and division == '1': # 매도 체결 시
                 self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] - che * price) / (self.stock_dict[code]['available_quantity'] - che) # 평균단가 수정
                 self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] - che # 주문가능 수량 수정
-                TeleBot.report_message("{} 매도체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
+                self.stock_dict[code]['order_quantity'] = 0
+                self.teleBot.report_message("{} 매도체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
 
 
         for fid in fid_list.split(";"):
@@ -247,7 +249,6 @@ class Kiwoom(QAxWidget):
             except Exception as e:
                 print(e)
 
-
             # 매수
             try:
                 if fluctuation_rate > 0 and self.stock_dict[s_code]['order_quantity'] == 0 and self.stock_dict[s_code]['available_quantity'] == 0: # 주문한 적 없고, 매도가능수량 없는 경우에만 매수
@@ -255,6 +256,7 @@ class Kiwoom(QAxWidget):
 
                     buy_quantity = 0
 
+                    # (미)체결 리스트 체크, 프로그램 재시작 시 이미 매수 주문 넣었던 건이면 매수 안함
                     for order in self.order_list:
                         if s_code == order[0] and order[7] == '매수' and int(order[9]) > 0: # 매수 체결량 0 보다 큰 경우 매수 안함
                             # print("매수 완료 건")
@@ -274,17 +276,21 @@ class Kiwoom(QAxWidget):
 
             # 잔고 매도
             try:
-                if self.stock_dict[s_code]['buy_close'] == 0:
-                    ror = 0
-                else:
-                    ror = (close - self.stock_dict[s_code]['buy_close']) / self.stock_dict[s_code]['buy_close'] * 100
-                # print("{}: ROR {} = 현재가 {}, 매입가 {}, 매도가능수량 {}".format(s_code, ror, close, self.stock_dict[s_code]['buy_close'], self.stock_dict[s_code]['available_quantity']))
+                sell_quantity_rate, ror = trade_algorithm.get_sell_quantity_and_ror(close, self.stock_dict[s_code])
 
-                if (ror > 5 or ror < -3) and self.stock_dict[s_code]['available_quantity'] > 0 and self.stock_dict[s_code]['order_quantity'] == 0: # 5% 익절 or -3% 손절
-                    # print("매도: {}, {}, {}, {}, {}, {}, {}, {}".format(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume))
-                    order_quantity = self.stock_dict[s_code]['available_quantity']
-                    self.sell_stock(s_code, '', order_quantity)
-                    self.stock_dict[s_code]['order_quantity'] = order_quantity
+                if sell_quantity_rate == 0.0 and ror == 0:
+                    pass # 매입가 없으므로 매도 안함
+                elif self.stock_dict[s_code]['order_quantity'] == 0: 
+                    # 0일 경우 매수/매도 주문 한 적 없는 경우, 주문 체결 시 0으로 초기화
+                    sell_quantity = round(self.stock_dict[s_code]['available_quantity'] * sell_quantity_rate)
+                    self.sell_stock(s_code, '', sell_quantity)
+                    self.stock_dict[s_code]['order_quantity'] = sell_quantity
+                    
+                elif self.stock_dict[s_code]['order_quantity'] != 0 and sell_quantity_rate == 1.0:
+                     # 주문수량 있는데, 전량 매도 타이밍인 경우 매도 주문
+                    self.sell_stock(s_code, '', self.stock_dict[s_code]['available_quantity'])
+                    self.stock_dict[s_code]['order_quantity'] = self.stock_dict[s_code]['available_quantity']
+                    
             except KeyError as e:
                 pass
                 # print(e)
