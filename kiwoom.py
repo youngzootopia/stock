@@ -167,6 +167,8 @@ class Kiwoom(QAxWidget):
     # 주문 TR 조회 응답 및 주문에 대한 메세지
     def _on_receive_msg(self, screen_no, rqname, trcode, msg):
         print(screen_no, rqname, trcode, msg)
+        if trcode == "RC4007":
+            pass
 
     # 주문 접수 및 체결에 대한 응답
     # gubun: 주문 접수 및 체결까지 GetChejanData 3번 수신(접수: 0, 체결: 0, 잔고 이동: 1)
@@ -191,13 +193,11 @@ class Kiwoom(QAxWidget):
             if che > 0 and division == '2': # 매수 체결 시
                 self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] + che * price) / (self.stock_dict[code]['available_quantity'] + che) # 매수가격 수정
                 self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] + che # 주문가능 수량 수정
-                self.stock_dict[code]
                 TeleBot.report_message("{} 매수체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
 
             if che > 0 and division == '1': # 매도 체결 시
                 self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] - che * price) / (self.stock_dict[code]['available_quantity'] - che) # 평균단가 수정
                 self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] - che # 주문가능 수량 수정
-                self.stock_dict[code]
                 TeleBot.report_message("{} 매도체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
 
 
@@ -278,14 +278,16 @@ class Kiwoom(QAxWidget):
                     ror = 0
                 else:
                     ror = (close - self.stock_dict[s_code]['buy_close']) / self.stock_dict[s_code]['buy_close'] * 100
-                print("{}: ROR {} = 현재가 {}, 매입가 {}, 매도가능수량 {}".format(s_code, ror, close, self.stock_dict[s_code]['buy_close'], self.stock_dict[s_code]['available_quantity']))
+                # print("{}: ROR {} = 현재가 {}, 매입가 {}, 매도가능수량 {}".format(s_code, ror, close, self.stock_dict[s_code]['buy_close'], self.stock_dict[s_code]['available_quantity']))
 
-                if (ror > 5 or ror < -3) and self.stock_dict[s_code]['available_quantity'] > 0: # 5% 익절 or -3% 손절
+                if (ror > 5 or ror < -3) and self.stock_dict[s_code]['available_quantity'] > 0 and self.stock_dict[s_code]['order_quantity'] == 0: # 5% 익절 or -3% 손절
                     # print("매도: {}, {}, {}, {}, {}, {}, {}, {}".format(s_code, fluctuation_rate, signed_at, close, high, open, low, accum_volume))
-                    self.sell_stock(s_code, '', self.stock_dict[s_code]['available_quantity'])
+                    order_quantity = self.stock_dict[s_code]['available_quantity']
+                    self.sell_stock(s_code, '', order_quantity)
+                    self.stock_dict[s_code]['order_quantity'] = order_quantity
             except KeyError as e:
-                # pass
-                print(e)
+                pass
+                # print(e)
 
 
     def _comm_connect(self):

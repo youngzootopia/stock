@@ -43,7 +43,7 @@ class Trade_stock():
 
                 stock['buy_close'] = balance_stock['buy_close']
                 stock['available_quantity'] = balance_stock['available_quantity']
-                print(stock)
+                stock['order_quantity'] = 0
                 stock_dict[balance_stock['code']] = stock
 
         fids = fid_codes.get_fid("체결시간") # 현제 체결시간만 등록해도 모든 데이터 가져옴. 키움 API 업데이트에 따라 리스트로 만들어야 할 수 있음
