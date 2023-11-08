@@ -1,3 +1,4 @@
 config/
 *.json
 trade_algorithm.py
+*.zip
