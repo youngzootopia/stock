@@ -218,7 +218,7 @@ class Kiwoom(QAxWidget):
                 self.stock_dict[code]['order_quantity'] = 0
                 self.teleBot.report_message("{} 매도체결: {} * {}, 잔고: {} * {}, {}%".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity'], (price - self.stock_dict[code]['buy_close']) / self.stock_dict[code]['buy_close'] * 100))
 
-        
+        '''
         for fid in fid_list.split(";"):
             # FID 9001 = 종목 코드, 결과의 경우 문자+종목코드 이므로 문자 제외하고 슬라이싱
             data = self.dynamicCall("GetChejanData(int)", fid).lstrip("+").lstrip("-")
@@ -237,6 +237,7 @@ class Kiwoom(QAxWidget):
                 print("{} : {}".format(name, data))
             except KeyError:
                 print("FID {} 는 정의되지 않았습니다.".format(fid))
+        '''
         
             
 
@@ -258,6 +259,7 @@ class Kiwoom(QAxWidget):
             low = abs(int(low))
             accum_volume = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("누적거래량"))
             accum_volume = abs(int(accum_volume))
+            vp = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결강도"))
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
             try:
@@ -281,7 +283,7 @@ class Kiwoom(QAxWidget):
                             break
 
                     if buy_quantity != -2: # 매수 완료 건 매수 안함 
-                        buy_quantity = trade_algorithm.get_buy_quantity(self.deposit, close, self.stock_dict[s_code])
+                        buy_quantity = trade_algorithm.get_buy_quantity(self.deposit, close, self.stock_dict[s_code], vp)
                         if buy_quantity != -1: # -1의 경우 예수금 부족 혹은 매수 가치 없음
                             self.stock_dict[s_code]['order_quantity'] = buy_quantity
                             self.deposit = self.deposit - (close * buy_quantity)
