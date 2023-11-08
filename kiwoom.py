@@ -190,30 +190,33 @@ class Kiwoom(QAxWidget):
             division = self.dynamicCall("GetChejanData(int)", "907") # 매도수 구분, 1:매도, 2:매수
             che = self.dynamicCall("GetChejanData(int)", "911").lstrip("+").lstrip("-") # 체결량
             price = self.dynamicCall("GetChejanData(int)", "910").lstrip("+").lstrip("-") # 체결가
-            if che.isdigit() and price.isdigit():
+            available_quantity = self.dynamicCall("GetChejanData(int)", "930").lstrip("+").lstrip("-") # 보유수량
+            buy_close = self.dynamicCall("GetChejanData(int)", "910").lstrip("+").lstrip("-") # 매입단가
+
+            if che.isdigit() and price.isdigit() and available_quantity.isdigit() and buy_close.isdigit():
                 che = int(che)
                 price = int(price)
+                available_quantity = int(available_quantity)
+                buy_close = int(buy_close)
             else:
                 che = 0
                 price = 0
+                available_quantity = 0
+                buy_close = 0.0
             
-            print("체결량 {}, 주문가격 {}".format(che, price))
-            
-
             if che > 0 and division == '2': # 매수 체결 시
-                self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] + che * price) / (self.stock_dict[code]['available_quantity'] + che) # 매수가격 수정
-                self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] + che # 주문가능 수량 수정
+                self.stock_dict[code]['available_quantity'] = available_quantity # 보유수량 수정
+                self.stock_dict[code]['buy_close'] = buy_close # 매수가격 수정
+                
                 self.stock_dict[code]['order_quantity'] = 0 # 주문 체결 시 0으로 초기화 하여야 당일 매수/매도 가능함
-                self.teleBot.report_message("{} 매수체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
+                self.teleBot.report_message("{} 매수체결: {} * {}, 잔고: {} * {} = {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity'], self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity']))
 
             if che > 0 and division == '1': # 매도 체결 시
-                self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] - che # 주문가능 수량 수정
-                try:
-                    self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] - che * price) / (self.stock_dict[code]['available_quantity'] - che) # 평균단가 수정            
-                except ZeroDivisionError: # 주문가능 수량 없으므로 평균단가 maxint
-                    self.stock_dict[code]['buy_close'] = sys.maxint                    
+                self.stock_dict[code]['available_quantity'] = available_quantity # 보유수량 수정
+                self.stock_dict[code]['buy_close'] = buy_close # 매수가격 수정
+
                 self.stock_dict[code]['order_quantity'] = 0
-                self.teleBot.report_message("{} 매도체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
+                self.teleBot.report_message("{} 매도체결: {} * {}, 잔고: {} * {}, {}%".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity'], (price - self.stock_dict[code]['buy_close']) / self.stock_dict[code]['buy_close'] * 100))
 
         
         for fid in fid_list.split(";"):
