@@ -3,6 +3,8 @@ from PyQt5.QtCore import *
 from datetime import datetime, timedelta
 
 import time
+import math
+import sys
 import pandas as pd
 
 import fid_codes
@@ -28,7 +30,7 @@ class Kiwoom(QAxWidget):
         self.deposit = self.get_deposit() # 예수금 가져오기
         self.order_list = self.get_order() # 체결리스트 가져오기 
         # 텔레그램 봇
-        teleBot = TeleBot()
+        self.teleBot = TeleBot()
 
     # 키움 증권 로그인 API
     def _make_kiwoom_instance(self):
@@ -175,20 +177,28 @@ class Kiwoom(QAxWidget):
     # cnt: 주문 접수 및 체결 시 얻는 항목의 개수
     # fid_list FID의 경우 키움API에서 미리 정의된 코드 값
     def _on_receive_chejan(self, gubun, cnt, fid_list):
+        # print(gubun)
         if gubun == "1": # 잔고
-            print(gubun, cnt, fid_list)
+            # 주문가능수량 갱신
+            code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
+            available_quantity = int(self.dynamicCall("GetChejanData(int)", "933"))
+
+            self.stock_dict[code]['available_quantity'] = available_quantity
         elif gubun == "0": # 체결
             code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
-            name = self.dynamicCall("GetChejanData(int)", "302") # 종목명
-            division = self.dynamicCall("GetChejanData(int)", "906") # 매도수 구분, 1:매도, 2:매수
+            name = self.dynamicCall("GetChejanData(int)", "302").strip() # 종목명
+            division = self.dynamicCall("GetChejanData(int)", "907") # 매도수 구분, 1:매도, 2:매수
             che = self.dynamicCall("GetChejanData(int)", "911").lstrip("+").lstrip("-") # 체결량
-            price = self.dynamicCall("GetChejanData(int)", "901").lstrip("+").lstrip("-") # 주문가격
+            price = self.dynamicCall("GetChejanData(int)", "910").lstrip("+").lstrip("-") # 체결가
             if che.isdigit() and price.isdigit():
                 che = int(che)
                 price = int(price)
             else:
                 che = 0
                 price = 0
+            
+            print("체결량 {}, 주문가격 {}".format(che, price))
+            
 
             if che > 0 and division == '2': # 매수 체결 시
                 self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] + che * price) / (self.stock_dict[code]['available_quantity'] + che) # 매수가격 수정
@@ -197,12 +207,15 @@ class Kiwoom(QAxWidget):
                 self.teleBot.report_message("{} 매수체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
 
             if che > 0 and division == '1': # 매도 체결 시
-                self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] - che * price) / (self.stock_dict[code]['available_quantity'] - che) # 평균단가 수정
                 self.stock_dict[code]['available_quantity'] = self.stock_dict[code]['available_quantity'] - che # 주문가능 수량 수정
+                try:
+                    self.stock_dict[code]['buy_close'] = (self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity'] - che * price) / (self.stock_dict[code]['available_quantity'] - che) # 평균단가 수정            
+                except ZeroDivisionError: # 주문가능 수량 없으므로 평균단가 maxint
+                    self.stock_dict[code]['buy_close'] = sys.maxint                    
                 self.stock_dict[code]['order_quantity'] = 0
                 self.teleBot.report_message("{} 매도체결: {} * {}, 잔고: {} * {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity']))
 
-
+        
         for fid in fid_list.split(";"):
             # FID 9001 = 종목 코드, 결과의 경우 문자+종목코드 이므로 문자 제외하고 슬라이싱
             data = self.dynamicCall("GetChejanData(int)", fid).lstrip("+").lstrip("-")
@@ -218,9 +231,10 @@ class Kiwoom(QAxWidget):
                 continue 
             try:
                 name = fid_codes.FID_CODES[fid]
-                # print("{} : {}".format(name, data))
+                print("{} : {}".format(name, data))
             except KeyError:
                 print("FID {} 는 정의되지 않았습니다.".format(fid))
+        
             
 
     # 실시간 체결 정보 응답 슬롯
@@ -280,16 +294,18 @@ class Kiwoom(QAxWidget):
 
                 if sell_quantity_rate == 0.0 and ror == 0:
                     pass # 매입가 없으므로 매도 안함
-                elif self.stock_dict[s_code]['order_quantity'] == 0: 
-                    # 0일 경우 매수/매도 주문 한 적 없는 경우, 주문 체결 시 0으로 초기화
-                    sell_quantity = round(self.stock_dict[s_code]['available_quantity'] * sell_quantity_rate)
-                    self.sell_stock(s_code, '', sell_quantity)
-                    self.stock_dict[s_code]['order_quantity'] = sell_quantity
-                    
-                elif self.stock_dict[s_code]['order_quantity'] != 0 and sell_quantity_rate == 1.0:
-                     # 주문수량 있는데, 전량 매도 타이밍인 경우 매도 주문
-                    self.sell_stock(s_code, '', self.stock_dict[s_code]['available_quantity'])
-                    self.stock_dict[s_code]['order_quantity'] = self.stock_dict[s_code]['available_quantity']
+                elif self.stock_dict[s_code]['available_quantity'] > 0: # 주문가능수량 있어야 함
+                    if self.stock_dict[s_code]['order_quantity'] == 0: 
+                        # 0일 경우 매수/매도 주문 한 적 없는 경우, 주문 체결 시 0으로 초기화
+                        sell_quantity = math.trunc(self.stock_dict[s_code]['available_quantity'] * sell_quantity_rate)
+                        if sell_quantity > 0:
+                            self.sell_stock(s_code, '', sell_quantity)
+                            self.stock_dict[s_code]['order_quantity'] = sell_quantity
+                        
+                    elif self.stock_dict[s_code]['order_quantity'] != 0 and sell_quantity_rate == 1.0:
+                        # 주문수량 있는데, 전량 매도 타이밍인 경우 매도 주문
+                        self.sell_stock(s_code, '', self.stock_dict[s_code]['available_quantity'])
+                        self.stock_dict[s_code]['order_quantity'] = self.stock_dict[s_code]['available_quantity']
                     
             except KeyError as e:
                 pass
@@ -417,7 +433,9 @@ class Kiwoom(QAxWidget):
         '''
         self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매도", "0153", stock_account, 2, code, quantity, price, division, ""])
 
-        print("{} 매도".format(code))
+        print("CODE: {}, QUANTITY: {}".format(code, quantity))
+
+        # print("{} 매도".format(code))
         time.sleep(1) # 초당 5번 주문 가능
 
     # 예수금 가져오기
