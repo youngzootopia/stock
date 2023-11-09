@@ -182,46 +182,50 @@ class Kiwoom(QAxWidget):
             if gubun == "1": # 잔고
                 # 주문가능수량 갱신
                 code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
-                available_quantity = int(self.dynamicCall("GetChejanData(int)", "933"))
-
+                available_quantity = int(self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("주문가능수량")))
+                buy_close = int(self.dynamicCall("GetChejanData(int)", "931").lstrip("+").lstrip("-")) # 매입단가
                 self.stock_dict[code]['available_quantity'] = available_quantity
-            elif gubun == "0": # 체결
+                self.stock_dict[code]['buy_close'] = buy_close
+
+                # 당일 손익 리포트
+                pl = int(self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("당일 총 매도 손익")))
+                pl_rate = round(float(self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("손익율"))), 2)
+                self.teleBot.report_message("당일 총 매도 손익: {}, 손익율: {}".format(pl, pl_rate))
+
+            elif gubun == "0": # 주문/체결
                 code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
                 name = self.dynamicCall("GetChejanData(int)", "302").strip() # 종목명
                 division = self.dynamicCall("GetChejanData(int)", "907") # 매도수 구분, 1:매도, 2:매수
                 che = self.dynamicCall("GetChejanData(int)", "911").lstrip("+").lstrip("-") # 체결량
                 price = self.dynamicCall("GetChejanData(int)", "910").lstrip("+").lstrip("-") # 체결가
-                available_quantity = self.dynamicCall("GetChejanData(int)", "930").lstrip("+").lstrip("-") # 보유수량
                 buy_close = self.dynamicCall("GetChejanData(int)", "910").lstrip("+").lstrip("-") # 매입단가
 
-                if che.isdigit() and price.isdigit() and available_quantity.isdigit() and buy_close.isdigit():
+                if che.isdigit() and price.isdigit() and buy_close.isdigit():
                     che = int(che)
                     price = int(price)
-                    available_quantity = int(available_quantity)
                     buy_close = int(buy_close)
                 else:
                     che = 0
                     price = 0
-                    available_quantity = 0
                     buy_close = 0.0
-                
+
                 if che > 0 and division == '2': # 매수 체결 시
-                    self.stock_dict[code]['available_quantity'] = available_quantity # 보유수량 수정
-                    self.stock_dict[code]['buy_close'] = buy_close # 매수가격 수정
-                    
                     self.stock_dict[code]['order_quantity'] = 0 # 주문 체결 시 0으로 초기화 하여야 당일 매수/매도 가능함
-                    self.teleBot.report_message("{} 매수체결: {} * {}, 잔고: {} * {} = {}".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity'], self.stock_dict[code]['buy_close'] * self.stock_dict[code]['available_quantity']))
+
+                    self.teleBot.report_message("{} 매수".format(name))
 
                 if che > 0 and division == '1': # 매도 체결 시
-                    self.stock_dict[code]['available_quantity'] = available_quantity # 보유수량 수정
-                    self.stock_dict[code]['buy_close'] = buy_close # 매수가격 수정
-
                     self.stock_dict[code]['order_quantity'] = 0
-                    self.teleBot.report_message("{} 매도체결: {} * {}, 잔고: {} * {}, {}%".format(name, price, che, self.stock_dict[code]['buy_close'], self.stock_dict[code]['available_quantity'], (price - self.stock_dict[code]['buy_close']) / self.stock_dict[code]['buy_close'] * 100))
+                    self.deposit = self.deposit + (che * price)
+
+                    order = int(self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("주문수량")))
+                    un_che = int(self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("미체결수량")))
+
+                    self.teleBot.report_message("{} 매도 - {}(체결수량)/{}(주문수량), 미체결수량: {}".format(name, che, order, un_che))
         except Exception as e:
             print(e)
 
-        
+        '''
         for fid in fid_list.split(";"):
             # FID 9001 = 종목 코드, 결과의 경우 문자+종목코드 이므로 문자 제외하고 슬라이싱
             data = self.dynamicCall("GetChejanData(int)", fid).lstrip("+").lstrip("-")
@@ -240,9 +244,7 @@ class Kiwoom(QAxWidget):
                 print("{} : {}".format(name, data))
             except KeyError:
                 print("FID {} 는 정의되지 않았습니다.".format(fid))
-        
-        
-            
+        '''
 
     # 실시간 체결 정보 응답 슬롯
     def _on_receive_real_data(self, s_code, real_type, real_data):
