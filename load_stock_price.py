@@ -166,7 +166,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     TeleBot = TeleBot()
 
     dateStr = datetime.today().strftime("%Y%m%d")
-    # dateStr = '20231106' # 특정날짜 적재 시 수정
+    # dateStr = '20231108' # 특정날짜 적재 시 수정
     code = '' # 특정 코드부터 적재 할 시 수정
 
     daily_load(dateStr, code)       
