@@ -26,6 +26,7 @@ class Kiwoom(QAxWidget):
         self.account_number = self.get_account_number() # 계좌번호 가져오기
         self.universe_realtime_transaction_info = [] # 실시간 체결정보 가져올 종목코드 리스트 -> 사용법에 대해서 고민 해봐야 함
         self.stock_dict = {}
+        self.pl = 0
         self.tr_event_loop = QEventLoop()
         self.deposit = self.get_deposit() # 예수금 가져오기
         self.order_list = self.get_order() # 체결리스트 가져오기 
@@ -190,7 +191,11 @@ class Kiwoom(QAxWidget):
                 # 당일 손익 리포트
                 pl = int(self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("당일 총 매도 손익")))
                 pl_rate = round(float(self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("손익율"))), 2)
-                self.teleBot.report_message("당일 총 매도 손익: {}, 손익율: {}".format(pl, pl_rate))
+
+                # 접수/체결 시 잔고 조회하므로 손익이 변경 되었을 시(체결 시)만 리포팅
+                if self.pl != pl:
+                    self.pl = pl
+                    self.teleBot.report_message("당일 총 매도 손익: {}, 손익율: {}".format(pl, pl_rate))
 
             elif gubun == "0": # 주문/체결
                 code = self.dynamicCall("GetChejanData(int)", "9001")[1:] 
