@@ -269,7 +269,7 @@ class Kiwoom(QAxWidget):
             low = abs(int(low))
             accum_volume = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("누적거래량"))
             accum_volume = abs(int(accum_volume))
-            vp = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결강도"))
+            vp = float(self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결강도")))
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
             try:
@@ -379,8 +379,8 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SetInputValue(QString, QString)", "표시구분", "0")
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10086_req", "opt10086", 0, "0006")
         self.tr_event_loop.exec_()
-        # 어차피 내일 종가 예측할 것이기 때문에, 5초 딜레이 삭제
-        time.sleep(3)
+        # 어차피 내일 종가 예측할 것이기 때문에, 2초만 딜레이
+        time.sleep(2)
 
         total = self.tr_data
 

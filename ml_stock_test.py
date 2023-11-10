@@ -1,4 +1,7 @@
 from sklearn.ensemble import RandomForestRegressor
+
+# 테스트
+from sklearn.neural_network import MLPRegressor
 from sklearn.linear_model import LinearRegression
 
 import pandas as pd
@@ -40,7 +43,7 @@ class Ml_stock():
 
             lr = LinearRegression()
             lr.fit(data, target)
-            lr_score = lr.score(target, data)
+            lr_score = lr.score(data, target)
 
             if rf_score > 0.98 and lr_score > 0.98:
                 break
@@ -54,10 +57,23 @@ class Ml_stock():
 
         pred = (rf_pred[0] + lr_pred[0]) / 2
 
+        print("{} {} {}".format(rf_pred[0], lr_pred[0], pred))
+
         predict_price = {'name': self.Mongo.get_stock_name(stock_code)
                          , 'pred_close': pred
                          , 'pred_fluctuation_rate': round(((pred - df.iloc[-1, 3]) / df.iloc[-1, 3] * 100), 2)
                          , 'close': 0
                          , 'fluctuation_rate': 0}
         predict_price["_id"] = {"code": stock_code, "date": date}
-        self.Mongo.insert_predict_price(predict_price)
+        # self.Mongo.insert_predict_price(predict_price)
+
+
+
+# 테스트 
+mongo = Mongo()
+ml = Ml_stock()
+
+csv_str = ""
+
+for stock in mongo.get_stock_list():
+    ml.predict_stock_close_price(stock, "20231109")
