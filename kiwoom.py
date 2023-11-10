@@ -320,8 +320,7 @@ class Kiwoom(QAxWidget):
                             self.sell_stock(s_code, '', sell_quantity)
                             self.stock_dict[s_code]['order_quantity'] = sell_quantity
                         
-                    elif self.stock_dict[s_code]['order_quantity'] != 0 and sell_quantity_rate == 1.0:
-                        # 주문수량 있는데, 전량 매도 타이밍인 경우 매도 주문
+                    elif sell_quantity_rate == 1.0: # 전량 매도 타이밍인 경우 매도 주문
                         self.sell_stock(s_code, '', self.stock_dict[s_code]['available_quantity'])
                         self.stock_dict[s_code]['order_quantity'] = self.stock_dict[s_code]['available_quantity']
                     
