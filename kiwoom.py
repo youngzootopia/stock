@@ -293,7 +293,7 @@ class Kiwoom(QAxWidget):
                             break
 
                     if buy_quantity != -2: # 매수 완료 건 매수 안함 
-                        buy_quantity = trade_algorithm.get_buy_quantity(self.deposit, close, self.stock_dict[s_code], vp)
+                        buy_quantity = trade_algorithm.get_buy_quantity(self.deposit, 100000, close, self.stock_dict[s_code], vp) # 10만원어치 구매
                         if buy_quantity != -1: # -1의 경우 예수금 부족 혹은 매수 가치 없음
                             self.stock_dict[s_code]['order_quantity'] = buy_quantity
                             self.deposit = self.deposit - (close * buy_quantity)
