@@ -40,7 +40,7 @@ class Ml_stock():
             rf_score = rf.oob_score_
 
             lr.fit(data, target)
-            lr_score = lr.score(target, data)
+            lr_score = lr.score(data, target)
 
             if rf_score > 0.98 and lr_score > 0.98:
                 break
