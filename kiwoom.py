@@ -156,11 +156,14 @@ class Kiwoom(QAxWidget):
                 code = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "종목번호").strip()[1:] 
                 buy_close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "매입가").strip())
                 available_quantity = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "매매가능수량").strip())
+                ror = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "수익률(%)").strip())
+
 
                 stock = {}
                 stock['code'] = code
                 stock['buy_close'] = buy_close
                 stock['available_quantity'] = available_quantity
+                stock['ror'] =  ror
                 total.append(stock)
             self.tr_data = total
 

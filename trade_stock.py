@@ -30,6 +30,7 @@ class Trade_stock():
             stock['order_quantity'] = 0
             stock['buy_close'] = 0
             stock['available_quantity'] = 0
+            stock['ror'] = 0.0
             stock_dict[pred['_id']['code']] = stock
 
         # 잔고 
@@ -37,6 +38,7 @@ class Trade_stock():
             if balance_stock['code'] in stock_dict: # 상승 종목에 잔고가 포함 되어 있을 수 있음
                 stock_dict[balance_stock['code']]['buy_close'] = balance_stock['buy_close']
                 stock_dict[balance_stock['code']]['available_quantity'] = balance_stock['available_quantity']    
+                stock_dict[balance_stock['code']]['ror'] = balance_stock['ror']
             else: # 잔고에만 있는 종목의 경우
                 stock = {}
                 code_list_str = code_list_str + balance_stock['code'] + ";"
@@ -44,6 +46,7 @@ class Trade_stock():
                 stock['buy_close'] = balance_stock['buy_close']
                 stock['available_quantity'] = balance_stock['available_quantity']
                 stock['order_quantity'] = 0
+                stock['ror'] = balance_stock['ror']
                 stock_dict[balance_stock['code']] = stock
 
         fids = fid_codes.get_fid("체결시간") # 현제 체결시간만 등록해도 모든 데이터 가져옴. 키움 API 업데이트에 따라 리스트로 만들어야 할 수 있음
