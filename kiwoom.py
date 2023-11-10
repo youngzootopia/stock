@@ -450,7 +450,7 @@ class Kiwoom(QAxWidget):
         '''
         self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매도", "0153", stock_account, 2, code, quantity, price, division, ""])
 
-        print("CODE: {}, QUANTITY: {}".format(code, quantity))
+        print("코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], quantity))
 
         # print("{} 매도".format(code))
         time.sleep(1) # 초당 5번 주문 가능
