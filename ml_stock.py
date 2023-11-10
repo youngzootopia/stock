@@ -33,12 +33,12 @@ class Ml_stock():
         target = np.array(target)
 
         rf_score, lr_score = 0, 0
+        rf = RandomForestRegressor(oob_score = True)
+        lr = LinearRegression()
         for i in range(5):
-            rf = RandomForestRegressor(oob_score = True)
             rf.fit(data, target)
             rf_score = rf.oob_score_
 
-            lr = LinearRegression()
             lr.fit(data, target)
             lr_score = lr.score(target, data)
 
