@@ -51,6 +51,7 @@ class Trade_stock():
                 stock['order_quantity'] = 0
                 stock['condition'] = 0.0
                 stock['ror'] = balance_stock['ror']
+                stock['pred_fluctuation_rate'] = 100 # 잔고의 경우 예상등락률 없으므로 100%로 설정
                 stock_dict[balance_stock['code']] = stock
 
             # 잔고 수익률에 따라 바로 매도
