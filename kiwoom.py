@@ -91,7 +91,6 @@ class Kiwoom(QAxWidget):
         elif rqname == "opw00001_req": # 예수금 가져오기
             deposit = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "주문가능금액")
             self.tr_data = int(deposit)
-            print(self.tr_data)
 
         elif rqname == "opt10086_req": # 일별 주식 가격 정보 가져오기
             try: # 주식 가격이 없는 경우 ''
@@ -467,8 +466,6 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00001_req", "opw00001", 0, "0502")
 
         self.tr_event_loop.exec()
-
-        time.sleep(5)
         return self.tr_data
 
     # 미체결 요청(실제로 당일 접수 전부 가져옴)
