@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import *
 import sys
+
 from kiwoom import Kiwoom
 from mongo import Mongo
 from ml_stock import Ml_stock
