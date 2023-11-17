@@ -28,7 +28,8 @@ class Kiwoom(QAxWidget):
         self.stock_dict = {}
         self.pl = 0
         self.tr_event_loop = QEventLoop()
-        self.deposit = self.get_deposit() # 예수금 가져오기
+        self.deposit = 0
+        self.get_deposit() # 예수금 가져오기
         self.order_list = self.get_order() # 체결리스트 가져오기 
         # 텔레그램 봇
         self.teleBot = TeleBot()
@@ -90,7 +91,7 @@ class Kiwoom(QAxWidget):
         
         elif rqname == "opw00001_req": # 예수금 가져오기
             deposit = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "주문가능금액")
-            self.tr_data = int(deposit)
+            self.deposit = int(deposit)
 
         elif rqname == "opt10086_req": # 일별 주식 가격 정보 가져오기
             try: # 주식 가격이 없는 경우 ''
@@ -181,7 +182,6 @@ class Kiwoom(QAxWidget):
     # cnt: 주문 접수 및 체결 시 얻는 항목의 개수
     # fid_list FID의 경우 키움API에서 미리 정의된 코드 값
     def _on_receive_chejan(self, gubun, cnt, fid_list):
-        # print(gubun)
         try:
             if gubun == "1": # 잔고
                 # 주문가능수량 갱신
@@ -260,6 +260,9 @@ class Kiwoom(QAxWidget):
             pass
         elif real_type == "주식체결":
             signed_at = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결시간"))
+
+            print(signed_at)
+
             fluctuation_rate = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("등락율"))
             fluctuation_rate = float(fluctuation_rate)
             close = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("현재가"))
@@ -466,7 +469,6 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00001_req", "opw00001", 0, "0502")
 
         self.tr_event_loop.exec()
-        return self.tr_data
 
     # 미체결 요청(실제로 당일 접수 전부 가져옴)
     def get_order(self):

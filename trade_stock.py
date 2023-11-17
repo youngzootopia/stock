@@ -1,21 +1,12 @@
-from PyQt5.QtWidgets import *
-from datetime import datetime
-import exchange_calendars as xcals
-import sys
 import math
-from kiwoom import Kiwoom
 from mongo import Mongo
-from ml_stock import Ml_stock
-from teleBot import TeleBot
 import fid_codes
 import trade_algorithm
 
-
 class Trade_stock():
-    def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요        
-        self.Kiwoom = Kiwoom()
-        self.Mongo = Mongo()
-        self.TeleBot = TeleBot()
+    def __init__(self, kiwoom): # QAxWidget 상속 받은 경우 오버라이딩 필요        
+        self.Kiwoom = kiwoom
+        self.Mongo = Mongo()        
 
     def register_real_stock_price(self, dateStr, limit):
         code_list_str = ""
