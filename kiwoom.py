@@ -260,9 +260,6 @@ class Kiwoom(QAxWidget):
             pass
         elif real_type == "주식체결":
             signed_at = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결시간"))
-
-            print(signed_at)
-
             fluctuation_rate = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("등락율"))
             fluctuation_rate = float(fluctuation_rate)
             close = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("현재가"))
@@ -276,6 +273,9 @@ class Kiwoom(QAxWidget):
             accum_volume = self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("누적거래량"))
             accum_volume = abs(int(accum_volume))
             vp = float(self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결강도")))
+
+            
+            print("{} {} {} {}".format(signed_at, s_code, fluctuation_rate, vp))
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
             try:
@@ -395,7 +395,8 @@ class Kiwoom(QAxWidget):
     
     # 업종(코스피 가져오려고) 가격 정보 가져오기
     def get_kospi_price(self, code):
-        self.dynamicCall("SetInputValue(QString, QString)", "업종코드", "001" if code == "" else code)
+        # 업종코드 = 001:종합(KOSPI), 002:대형주, 003:중형주, 004:소형주 101:종합(KOSDAQ), 201:KOSPI200, 302:KOSTAR, 701: KRX100 나머지 ※ 업종코드 참고
+        self.dynamicCall("SetInputValue(QString, QString)", "업종코드", code)
         # self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20231003")
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt20006_req", "opt20006", 0, "0030")
         self.tr_event_loop.exec_()

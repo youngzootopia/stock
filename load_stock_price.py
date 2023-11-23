@@ -18,19 +18,20 @@ def daily_load(start_date, code):
 @dispatch(str, str, str)
 def daily_load(start_date, end_date, code):
     # 종목 정보 가져오기
-    kospi_list = Kiwoom.get_code_list_stok_market("0")
-    # kosdak_list = Kiwoom.get_code_list_stok_market("10")
+    code_list = Kiwoom.get_code_list_stok_market("0")
+    code_list.append(Kiwoom.get_code_list_stok_market("10"))
     # kospi_list = []
-    kospi_list.append("KOSPI")
+    code_list.append("KOSPI")
+    code_list.append("KOSDAQ")
 
     # 특정 종목부터 받아올 경우 isNext 사용
     # 일별 적재
     stock_list = []
     date_list = pandas.date_range(start = start_date, end = end_date, freq = 'D')
     isNext = True if code != "" else False
-    for kospi in kospi_list:
+    for stock_code in code_list:
         # 특정 종목부터 적재할 때
-        if kospi == code:
+        if stock_code == code:
             isNext = False
 
         if isNext:
@@ -40,25 +41,32 @@ def daily_load(start_date, end_date, code):
         # if kospi == "466940":
         #     break
 
-        print(kospi)
+        print(stock_code)
         for dateStr in date_list:
             dateStr = dateStr.strftime("%Y%m%d")
-            if kospi == "KOSPI":
-                kospi_price_list = kospi_full_load()
-                for kospi_price in kospi_price_list:
-                    if kospi_price['_id']['date'] == dateStr:
-                        stock_price = kospi_price
+            if stock_code == "KOSPI" or stock_code == 'KOSDAQ': 
+                # 업종코드 = 001:종합(KOSPI), 002:대형주, 003:중형주, 004:소형주 101:종합(KOSDAQ), 201:KOSPI200, 302:KOSTAR, 701: KRX100 나머지 ※ 업종코드 참고
+                market_code = '001'
+                if stock_code == "KOSPI":
+                    market_code = "001"
+                elif stock_code == "KOSDAQ":
+                    market_code = "101"
+
+                market_price_list = stock_market_full_load(market_code)
+                for market_price in market_price_list:
+                    if market_price['_id']['date'] == dateStr:
+                        stock_price = market_price
             else:
-                stock_price = Kiwoom.get_day_price(kospi, dateStr)
+                stock_price = Kiwoom.get_day_price(stock_code, dateStr)
 
                 # 신규 상장 주식의 경우 코드네임 저장
-                if Mongo.get_stock_name(kospi) == "":
-                    code = {}
-                    code['_id'] = {}
-                    code['_id']['code'] = kospi
-                    code['name'] = Kiwoom.get_code_name(kospi)
+                if Mongo.get_stock_name(stock_code) == "":
+                    stock = {}
+                    stock['_id'] = {}
+                    stock['_id']['code'] = stock_code
+                    stock['name'] = Kiwoom.get_code_name(stock_code)
 
-                    Mongo.insert_code_name(code)
+                    Mongo.insert_code_name(stock)
             
             # 데이터가 있어야 하고, 시가가 0원 이상만 적재
             if len(stock_price) > 0 and stock_price['open'] > 0:
@@ -70,24 +78,24 @@ def daily_load(start_date, end_date, code):
                 XKRX = xcals.get_calendar("XKRX")
                 next_open = XKRX.next_open(dateStr)
 
-                Ml_stock.predict_stock_close_price(kospi, next_open.strftime("%Y%m%d"))
+                Ml_stock.predict_stock_close_price(stock_code, next_open.strftime("%Y%m%d"))
                 
 
 # 2018~ 일괄 적재 완료.    
 def full_load():
     # 종목 정보 가져오기
-    kospi_list = Kiwoom.get_code_list_stok_market("0")
-    # kosdak_list = Kiwoom.get_code_list_stok_market("10")
+    # kospi_list = Kiwoom.get_code_list_stok_market("0")
+    code_list = Kiwoom.get_code_list_stok_market("10")
 
     # isNext = True
-    for kospi in kospi_list:
+    for code in code_list:
     #     if kospi == "530023":
     #         isNext = False
 
     #     if isNext:
     #         continue    
-        print(kospi)
-        stock_price_list = Kiwoom.get_price(kospi)
+        print(code)
+        stock_price_list = Kiwoom.get_price(code)
 
     # 이상한 종목을 가져오는 경우가 있음. 이런 경우 size 필터링해서 DB에 안넣기
         if len(stock_price_list) > 0:
@@ -127,7 +135,7 @@ def delete_closed_data(start_date):
 def load_stock_code_and_name():
     # 종목 정보 가져오기
     kospi_list = Kiwoom.get_code_list_stok_market("0")
-    # kosdak_list = Kiwoom.get_code_list_stok_market("10")
+    kosdak_list = Kiwoom.get_code_list_stok_market("10")
     
     total = []
     for code in kospi_list:
@@ -138,11 +146,20 @@ def load_stock_code_and_name():
         code_and_name["_id"] = {"code": code}
         total.append(code_and_name)
 
+    for code in kosdak_list:
+        name = Kiwoom.get_code_name(code)
+
+        print("{0}: {1}".format(code, name))
+        code_and_name = {'name': name}
+        code_and_name["_id"] = {"code": code}
+        total.append(code_and_name)
+
     Mongo.insert_code_name_many(total)
 
 
-def kospi_full_load():
-    stock_price_list = Kiwoom.get_kospi_price("") # 업종코드 = 001:종합(KOSPI), 002:대형주, 003:중형주, 004:소형주 101:종합(KOSDAQ), 201:KOSPI200, 302:KOSTAR, 701: KRX100 나머지 ※ 업종코드 참고
+def stock_market_full_load(code):
+
+    stock_price_list = Kiwoom.get_kospi_price(code)
 
     # 이상한 종목을 가져오는 경우가 있음. 이런 경우 size 필터링해서 DB에 안넣기
     if len(stock_price_list) > 0:
@@ -155,7 +172,7 @@ def report_close_pred(dateStr):
     TeleBot.report_message("{0} KOSPI 예측 보고서: {1}".format(dateStr, pred_kospi['pred_fluctuation_rate']))
 
     for pred in Mongo.get_pred_close(dateStr, 30):
-        TeleBot.report_message("종목명: {0}\n예측 상승률: {1}\n예측 종가: {2}".format(Mongo.get_stock_name(pred['_id']['code']), pred['pred_fluctuation_rate'], pred['pred_close']))
+        TeleBot.report_message("종목명: {0}\n예측 상승률: {1}\n예측 종가: {2}".format(Mongo.get_stock_name(pred['_id']['code']), pred['pred_fluctuation_rate'], round(pred['pred_close'])))
 
 if __name__ == '__main__': # 중복 방지를 위해 사용
     # 키움 API 실행
@@ -165,8 +182,15 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     Ml_stock = Ml_stock()
     TeleBot = TeleBot()
 
+    # 1. 종목 코드(코스피, 코스닥) 네임 저장하기
+    # load_stock_code_and_name()
+
+    # 2. 일괄 적재 kiwoom.py 에서 '20180101' 이후 데이터만 적재 하도록 작성
+    # full_load()
+
+    # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
-    # dateStr = '20231108' # 특정날짜 적재 시 수정
+    # dateStr = '20231117' # 특정날짜 적재 시 수정
     code = '' # 특정 코드부터 적재 할 시 수정
 
     daily_load(dateStr, code)       
@@ -176,4 +200,3 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     report_close_pred(next_open)
 
     app.exec_()
-    

@@ -14,6 +14,10 @@ class IntervalThread(threading.Thread):
         self.kiwoom = kiwoom
         self.trade_stock = trade_stock
 
+        self.order_timer = threading.Timer(20, self.get_order)
+        self.deposit_timer = threading.Timer(30, self.get_order)
+
+
     def get_order(self):
         self.kiwoom.order_list = self.kiwoom.get_order()
         print(self.kiwoom.order_list)
@@ -21,6 +25,14 @@ class IntervalThread(threading.Thread):
     def get_deposit(self):
         self.kiwoom.get_deposit()        
         print(self.kiwoom.deposit)
+
+    def start(self):
+        self.order_timer.start()      
+        self.deposit_timer.start()
+
+    def stop(self):
+        self.order_timer.cancel()
+        self.deposit_timer.cancel()
     
 class TradeThread(threading.Thread):
     def __init__(self, kiwoom, trade_stock):
@@ -43,15 +55,14 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     trade_stock = Trade_stock(kiwoom)
 
     register_thread = TradeThread(kiwoom, trade_stock)
-    register_thread.start()
     register_thread.register_real_stock_price()
 
     order_and_deposit_thread = IntervalThread(kiwoom, trade_stock)
-    order_and_deposit_thread.start()
 
-    while True: 
-        order_and_deposit_thread.get_deposit()
-        order_and_deposit_thread.get_order()
+    event = threading.Event()
+    while True:
+      if event.wait(5):
+        order_and_deposit_thread.start()
 
     app.exec_()
 

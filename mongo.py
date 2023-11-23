@@ -102,7 +102,7 @@ class Mongo():
     
     def insert_code_name_many(self, arr):
         coll = self.db["code"]
-        result = coll.insert_many(arr)
+        result = coll.insert_many(arr, ordered = False)
 
     def insert_code_name(self, code):
         coll = self.db["code"]
