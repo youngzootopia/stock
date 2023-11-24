@@ -87,13 +87,13 @@ def full_load():
     # kospi_list = Kiwoom.get_code_list_stok_market("0")
     code_list = Kiwoom.get_code_list_stok_market("10")
 
-    # isNext = True
+    isNext = True
     for code in code_list:
-    #     if kospi == "530023":
-    #         isNext = False
+        if code == "900100":
+            isNext = False
 
-    #     if isNext:
-    #         continue    
+        if isNext:
+            continue    
         print(code)
         stock_price_list = Kiwoom.get_price(code)
 
@@ -190,8 +190,8 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
 
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
-    # dateStr = '20231117' # 특정날짜 적재 시 수정
-    code = '' # 특정 코드부터 적재 할 시 수정
+    dateStr = '20231123' # 특정날짜 적재 시 수정
+    code = '150460' # 특정 코드부터 적재 할 시 수정
 
     daily_load(dateStr, code)       
     

@@ -13,10 +13,11 @@ class Mongo():
         self.connect()
 
     def connect(self):
-        uri = "mongodb+srv://" + self.config['DEFAULT']['ATLAS_USERNAME'] + ":" + self.config['DEFAULT']['ATLAS_PASS'] + "@stockdb.wbsygbk.mongodb.net/?retryWrites=true&w=majority"
+        # uri = "mongodb+srv://" + self.config['DEFAULT']['ATLAS_USERNAME'] + ":" + self.config['DEFAULT']['ATLAS_PASS'] + "@stockdb.wbsygbk.mongodb.net/?retryWrites=true&w=majority"
 
         # Create a new client and connect to the server
-        self.client = MongoClient(uri, tlsCAFile=certifi.where())
+        # self.client = MongoClient(uri, tlsCAFile=certifi.where())
+        self.client = MongoClient(host='localhost', port=27017)
 
         print(self.client.list_database_names())
 
@@ -34,8 +35,8 @@ class Mongo():
         try:
             result = coll.insert_many(arr, ordered = False) # ordered=False 이미 있는 값은 merge
         except Exception as e:
-            # print("Error occurred:", e)
-            print("Error occurred")
+            print("Error occurred:", e)
+            # print("Error occurred")
         # result = coll.insert_many(json.loads(df.T.to_json()).values())
 
         # print(result.inserted_ids)
@@ -223,3 +224,5 @@ class Mongo():
         )
 
         return result
+    
+mongo = Mongo()    
