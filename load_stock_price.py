@@ -84,12 +84,12 @@ def daily_load(start_date, end_date, code):
 # 2018~ 일괄 적재 완료.    
 def full_load():
     # 종목 정보 가져오기
-    # kospi_list = Kiwoom.get_code_list_stok_market("0")
-    code_list = Kiwoom.get_code_list_stok_market("10")
+    code_list = Kiwoom.get_code_list_stok_market("0")
+    code_list.append(Kiwoom.get_code_list_stok_market("10"))
 
     isNext = True
     for code in code_list:
-        if code == "900100":
+        if code == "000100":
             isNext = False
 
         if isNext:
@@ -186,17 +186,17 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # load_stock_code_and_name()
 
     # 2. 일괄 적재 kiwoom.py 에서 '20180101' 이후 데이터만 적재 하도록 작성
-    # full_load()
+    full_load()
 
     # 2. 일 적재
-    dateStr = datetime.today().strftime("%Y%m%d")
-    dateStr = '20231123' # 특정날짜 적재 시 수정
-    code = '150460' # 특정 코드부터 적재 할 시 수정
+    # dateStr = datetime.today().strftime("%Y%m%d")
+    # dateStr = '20231123' # 특정날짜 적재 시 수정
+    # code = '399580' # 특정 코드부터 적재 할 시 수정
 
-    daily_load(dateStr, code)       
+    # daily_load(dateStr, code)       
     
-    XKRX = xcals.get_calendar("XKRX")
-    next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
-    report_close_pred(next_open)
+    # XKRX = xcals.get_calendar("XKRX")
+    # next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
+    # report_close_pred(next_open)
 
     app.exec_()
