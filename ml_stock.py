@@ -56,8 +56,6 @@ class Ml_stock():
 
         predict_price = {'name': self.Mongo.get_stock_name(stock_code)
                          , 'pred_close': pred
-                         , 'pred_fluctuation_rate': round(((pred - df.iloc[-1, 3]) / df.iloc[-1, 3] * 100), 2)
-                         , 'close': 0
-                         , 'fluctuation_rate': 0}
+                         , 'pred_fluctuation_rate': round(((pred - df.iloc[-1, 3]) / df.iloc[-1, 3] * 100), 2)}
         predict_price["_id"] = {"code": stock_code, "date": date}
         self.Mongo.insert_predict_price(predict_price)

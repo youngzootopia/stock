@@ -71,7 +71,10 @@ def daily_load(start_date, end_date, code):
             # 데이터가 있어야 하고, 시가가 0원 이상만 적재
             if len(stock_price) > 0 and stock_price['open'] > 0:
                 stock_list.append(stock_price)
-                Mongo.update_predict_price(stock_price) # 전날 예측한 종가 검증을 위해 실제 종가 및 등락률 업데이트
+                # 전날 예측한 종가 검증을 위해 실제 종가 및 등락률 업데이트
+                # 231127 이후 업데이트 안함. MONGODB의 경우 업데이트 시 로그가 쌓이는데 양이 너무 많아짐
+                # Mongo.update_predict_price(stock_price)
+
                 Mongo.insert_price_daily(stock_price)
 
                 # 데이터 예측
@@ -89,7 +92,7 @@ def full_load():
 
     isNext = True
     for code in code_list:
-        if code == "000100":
+        if code == "051600":
             isNext = False
 
         if isNext:
@@ -186,14 +189,17 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # load_stock_code_and_name()
 
     # 2. 일괄 적재 kiwoom.py 에서 '20180101' 이후 데이터만 적재 하도록 작성
-    full_load()
+    # full_load()
 
     # 2. 일 적재
-    # dateStr = datetime.today().strftime("%Y%m%d")
-    # dateStr = '20231123' # 특정날짜 적재 시 수정
-    # code = '399580' # 특정 코드부터 적재 할 시 수정
+    dateStr = datetime.today().strftime("%Y%m%d")
+    dateStr = '20231124' # 특정날짜 적재 시 수정
+    #20231123	2141
+    #20231102	1389
 
-    # daily_load(dateStr, code)       
+    code = '002450' # 특정 코드부터 적재 할 시 수정
+
+    daily_load(dateStr, code)       
     
     # XKRX = xcals.get_calendar("XKRX")
     # next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
