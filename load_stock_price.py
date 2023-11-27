@@ -29,7 +29,10 @@ def daily_load(start_date, end_date, code):
     stock_list = []
     date_list = pandas.date_range(start = start_date, end = end_date, freq = 'D')
     isNext = True if code != "" else False
+    i = 0
     for stock_code in code_list:
+        i = i + 1
+
         # 특정 종목부터 적재할 때
         if stock_code == code:
             isNext = False
@@ -41,7 +44,7 @@ def daily_load(start_date, end_date, code):
         # if kospi == "466940":
         #     break
 
-        print(stock_code)
+        print("{}: {} / {}".format(stock_code, i, len(code_list)))
         for dateStr in date_list:
             dateStr = dateStr.strftime("%Y%m%d")
             if stock_code == "KOSPI" or stock_code == 'KOSDAQ': 
@@ -194,7 +197,8 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
     dateStr = '20231102' # 특정날짜 적재 시 수정
-    #20231123	2141
+    #20231123 코스닥
+    #20231124 코스닥
 
     code = '' # 특정 코드부터 적재 할 시 수정
 
