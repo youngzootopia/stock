@@ -52,7 +52,7 @@ def daily_load(start_date, end_date, code):
                 elif stock_code == "KOSDAQ":
                     market_code = "101"
 
-                market_price_list = stock_market_full_load(market_code)
+                market_price_list = stock_market_full_load(market_code, dateStr)
                 for market_price in market_price_list:
                     if market_price['_id']['date'] == dateStr:
                         stock_price = market_price
@@ -160,9 +160,9 @@ def load_stock_code_and_name():
     Mongo.insert_code_name_many(total)
 
 
-def stock_market_full_load(code):
+def stock_market_full_load(code, dateStr):
 
-    stock_price_list = Kiwoom.get_kospi_price(code)
+    stock_price_list = Kiwoom.get_kospi_price(code, dateStr)
 
     # 이상한 종목을 가져오는 경우가 있음. 이런 경우 size 필터링해서 DB에 안넣기
     if len(stock_price_list) > 0:
@@ -193,11 +193,10 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
 
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
-    dateStr = '20231124' # 특정날짜 적재 시 수정
+    dateStr = '20231102' # 특정날짜 적재 시 수정
     #20231123	2141
-    #20231102	1389
 
-    code = '002450' # 특정 코드부터 적재 할 시 수정
+    code = '' # 특정 코드부터 적재 할 시 수정
 
     daily_load(dateStr, code)       
     

@@ -384,8 +384,8 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SetInputValue(QString, QString)", "표시구분", "0")
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10086_req", "opt10086", 0, "0006")
         self.tr_event_loop.exec_()
-        # 어차피 내일 종가 예측할 것이기 때문에, 2초만 딜레이
-        time.sleep(2)
+        # 어차피 내일 종가 예측할 것이기 때문에, 1초만 딜레이
+        time.sleep(1)
 
         total = self.tr_data
 
@@ -394,15 +394,19 @@ class Kiwoom(QAxWidget):
         return total
     
     # 업종(코스피 가져오려고) 가격 정보 가져오기
-    def get_kospi_price(self, code):
+    def get_kospi_price(self, code, dateStr):
         # 업종코드 = 001:종합(KOSPI), 002:대형주, 003:중형주, 004:소형주 101:종합(KOSDAQ), 201:KOSPI200, 302:KOSTAR, 701: KRX100 나머지 ※ 업종코드 참고
         self.dynamicCall("SetInputValue(QString, QString)", "업종코드", code)
-        # self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20231003")
+        self.dynamicCall("SetInputValue(QString, QString)", "기준일자", dateStr)
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt20006_req", "opt20006", 0, "0030")
         self.tr_event_loop.exec_()
         time.sleep(5)
 
         total = self.tr_data
+
+        for stock in total:
+            if stock['_id']['date'] == dateStr:
+                self.isNext = False
 
         while self.isNext:
             self.dynamicCall("SetInputValue(QString, QString)", "업종코드", "001" if code != "" else code)
@@ -410,6 +414,10 @@ class Kiwoom(QAxWidget):
             self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt20006_req", "opt20006", 0, "0030")
             self.tr_event_loop.exec_()
             total += self.tr_data
+
+            for stock in total:
+                if stock['_id']['date'] == dateStr:
+                    self.isNext = False
             time.sleep(5)
 
         return total
