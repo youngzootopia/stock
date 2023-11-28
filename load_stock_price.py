@@ -18,8 +18,9 @@ def daily_load(start_date, code):
 @dispatch(str, str, str)
 def daily_load(start_date, end_date, code):
     # 종목 정보 가져오기
-    code_list = Kiwoom.get_code_list_stok_market("0")
-    code_list.append(Kiwoom.get_code_list_stok_market("10"))
+    code_list = []
+    code_list = code_list + Kiwoom.get_code_list_stok_market("0")
+    code_list = code_list + Kiwoom.get_code_list_stok_market("10")
     # kospi_list = []
     code_list.append("KOSPI")
     code_list.append("KOSDAQ")
@@ -86,21 +87,21 @@ def daily_load(start_date, end_date, code):
 
                 Ml_stock.predict_stock_close_price(stock_code, next_open.strftime("%Y%m%d"))
                 
-
-# 2018~ 일괄 적재 완료.    
 def full_load():
     # 종목 정보 가져오기
     code_list = Kiwoom.get_code_list_stok_market("0")
-    code_list.append(Kiwoom.get_code_list_stok_market("10"))
+    code_list = code_list + Kiwoom.get_code_list_stok_market("10")
 
     isNext = True
+    i = 0
     for code in code_list:
-        if code == "051600":
+        i = i + 1
+        if code == "042000":
             isNext = False
 
         if isNext:
             continue    
-        print(code)
+        print("{}: {} / {}".format(code, i, len(code_list)))
         stock_price_list = Kiwoom.get_price(code)
 
     # 이상한 종목을 가져오는 경우가 있음. 이런 경우 size 필터링해서 DB에 안넣기
@@ -191,8 +192,8 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # 1. 종목 코드(코스피, 코스닥) 네임 저장하기
     # load_stock_code_and_name()
 
-    # 2. 일괄 적재 kiwoom.py 에서 '20180101' 이후 데이터만 적재 하도록 작성
-    # full_load()
+    # 2. 일괄 적재 kiwoom.py 에서 '20100101' 까지 데이터만 적재 하도록 작성
+    full_load()
 
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
@@ -200,9 +201,9 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     #20231123 코스닥
     #20231124 코스닥
 
-    code = '' # 특정 코드부터 적재 할 시 수정
+    # code = '001230' # 특정 코드부터 적재 할 시 수정
 
-    daily_load(dateStr, code)       
+    # daily_load(dateStr, code)       
     
     # XKRX = xcals.get_calendar("XKRX")
     # next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
