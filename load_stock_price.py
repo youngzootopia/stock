@@ -31,6 +31,7 @@ def daily_load(start_date, end_date, code):
     date_list = pandas.date_range(start = start_date, end = end_date, freq = 'D')
     isNext = True if code != "" else False
     i = 0
+    ml_time = 0
     for stock_code in code_list:
         i = i + 1
 
@@ -45,7 +46,7 @@ def daily_load(start_date, end_date, code):
         # if kospi == "466940":
         #     break
 
-        print("{}: {} / {}".format(stock_code, i, len(code_list)))
+        print("{}: {} / {} = {}".format(stock_code, i, len(code_list), round(i / len(code_list), 2)))
         for dateStr in date_list:
             dateStr = dateStr.strftime("%Y%m%d")
             if stock_code == "KOSPI" or stock_code == 'KOSDAQ': 
@@ -61,7 +62,7 @@ def daily_load(start_date, end_date, code):
                     if market_price['_id']['date'] == dateStr:
                         stock_price = market_price
             else:
-                stock_price = Kiwoom.get_day_price(stock_code, dateStr)
+                stock_price = Kiwoom.get_day_price(stock_code, dateStr, ml_time)
 
                 # 신규 상장 주식의 경우 코드네임 저장
                 if Mongo.get_stock_name(stock_code) == "":
@@ -85,7 +86,7 @@ def daily_load(start_date, end_date, code):
                 XKRX = xcals.get_calendar("XKRX")
                 next_open = XKRX.next_open(dateStr)
 
-                Ml_stock.predict_stock_close_price(stock_code, next_open.strftime("%Y%m%d"))
+                ml_time = Ml_stock.predict_stock_close_price(stock_code, next_open.strftime("%Y%m%d"))
                 
 def full_load():
     # 종목 정보 가져오기
@@ -96,7 +97,7 @@ def full_load():
     i = 0
     for code in code_list:
         i = i + 1
-        if code == "042000":
+        if code == "000020": # 000020 첫 주식
             isNext = False
 
         if isNext:
@@ -193,20 +194,20 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # load_stock_code_and_name()
 
     # 2. 일괄 적재 kiwoom.py 에서 '20100101' 까지 데이터만 적재 하도록 작성
-    full_load()
+    # full_load()
 
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
-    dateStr = '20231102' # 특정날짜 적재 시 수정
+    dateStr = '20231129' # 특정날짜 적재 시 수정
     #20231123 코스닥
     #20231124 코스닥
 
-    # code = '001230' # 특정 코드부터 적재 할 시 수정
+    code = '610028' # 특정 코드부터 적재 할 시 수정
 
-    # daily_load(dateStr, code)       
+    daily_load(dateStr, code)       
     
-    # XKRX = xcals.get_calendar("XKRX")
-    # next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
-    # report_close_pred(next_open)
+    XKRX = xcals.get_calendar("XKRX")
+    next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
+    report_close_pred(next_open)
 
     app.exec_()

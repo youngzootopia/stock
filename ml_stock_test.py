@@ -8,6 +8,8 @@ import pandas as pd
 import numpy as np
 from mongo import Mongo
 
+import time
+
 class Ml_stock():
     def __init__(self):
         super().__init__()
@@ -66,14 +68,3 @@ class Ml_stock():
                          , 'fluctuation_rate': 0}
         predict_price["_id"] = {"code": stock_code, "date": date}
         # self.Mongo.insert_predict_price(predict_price)
-
-
-
-# 테스트 
-mongo = Mongo()
-ml = Ml_stock()
-
-csv_str = ""
-
-for stock in mongo.get_stock_list():
-    ml.predict_stock_close_price(stock, "20231109")

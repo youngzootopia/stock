@@ -5,12 +5,15 @@ import pandas as pd
 import numpy as np
 from mongo import Mongo
 
+import time
+
 class Ml_stock():
     def __init__(self):
         super().__init__()
         self.Mongo = Mongo()
 
     def predict_stock_close_price(self, stock_code, date):
+        start_time = time.time()
         df = pd.DataFrame(self.Mongo.get_price_data(stock_code))
 
         if len(df) < 2: # 신규 상장한 경우
@@ -42,7 +45,7 @@ class Ml_stock():
             lr.fit(data, target)
             lr_score = lr.score(data, target)
 
-            if rf_score > 0.98 and lr_score > 0.98:
+            if rf_score > 0.99 or lr_score > 0.99:
                 break
 
         # 금일 종가
@@ -59,3 +62,5 @@ class Ml_stock():
                          , 'pred_fluctuation_rate': round(((pred - df.iloc[-1, 3]) / df.iloc[-1, 3] * 100), 2)}
         predict_price["_id"] = {"code": stock_code, "date": date}
         self.Mongo.insert_predict_price(predict_price)
+
+        return time.time() - start_time
