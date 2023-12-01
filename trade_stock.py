@@ -48,10 +48,12 @@ class Trade_stock():
             # 잔고 수익률에 따라 바로 매도
             sell_quantity_rate, ror = trade_algorithm.get_sell_quantity_and_ror(stock['buy_close'], stock, self.Kiwoom.logger)            
             sell_quantity = math.trunc(stock['available_quantity'] * sell_quantity_rate)
-            print("코드: {} ROR: {} 판매수량: {}".format(balance_stock['code'], ror, sell_quantity))
+            
             if sell_quantity > 0:
+                self.logger.info("코드: {} ROR: {} 매도주문수량: {}".format(balance_stock['code'], ror, sell_quantity))
+                print("코드: {} ROR: {} 매도주문수량: {}".format(balance_stock['code'], ror, sell_quantity))
                 self.Kiwoom.sell_stock(balance_stock['code'], '', sell_quantity)
-                stock['order_quantity'] = sell_quantity
+                
 
         fids = fid_codes.get_fid("체결시간") # 현제 체결시간만 등록해도 모든 데이터 가져옴. 키움 API 업데이트에 따라 리스트로 만들어야 할 수 있음
 
