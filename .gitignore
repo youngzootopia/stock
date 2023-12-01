@@ -2,3 +2,5 @@ config/
 *.json
 trade_algorithm.py
 *.zip
+log/
+*test*

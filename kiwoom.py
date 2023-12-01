@@ -6,6 +6,7 @@ import time
 import math
 import sys
 import pandas as pd
+import logging
 
 import fid_codes
 import trade_algorithm
@@ -33,6 +34,8 @@ class Kiwoom(QAxWidget):
         self.order_list = self.get_order() # 체결리스트 가져오기 
         # 텔레그램 봇
         self.teleBot = TeleBot()
+        # 로깅
+        logging.basicConfig(filename='./log/' + datetime.today().strftime("%Y%m%d") + '.log', level = logging.DEBUG)
 
     # 키움 증권 로그인 API
     def _make_kiwoom_instance(self):
@@ -283,7 +286,8 @@ class Kiwoom(QAxWidget):
             vp = float(self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결강도")))
 
             
-            print("{} {} {} {}".format(signed_at, s_code, fluctuation_rate, vp))
+                    
+            logging.debug("{} {} {} {}".format(signed_at, s_code, fluctuation_rate, vp))
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
             try:
@@ -474,6 +478,7 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매도", "0153", stock_account, 2, code, quantity, price, division, ""])
 
         try:
+            logging.info("코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
             print("코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
         except KeyError as e:
             print(e)
