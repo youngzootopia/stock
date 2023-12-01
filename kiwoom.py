@@ -453,6 +453,13 @@ class Kiwoom(QAxWidget):
         '''
         self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매수", "0150", stock_account, 1, code, quantity, price, division, ""])
 
+        try:
+            self.logger.info("(매수 주문)코드: {}, 등락률(예측 상승률): {}({}), 구매수량: {}".format(code, self.stock_dict[code]['fluctuation_rate'], self.stock_dict[code]['pred_fluctuation_rate'], quantity))
+            print("(매수 주문)코드: {}, 등락률(예측 상승률): {}({}), 구매수량: {}".format(code, self.stock_dict[code]['fluctuation_rate'], self.stock_dict[code]['pred_fluctuation_rate'], quantity))
+        except KeyError as e:
+            self.logger.error("(매수 주문) 오류 {}".format(e))
+            print(e)
+
         time.sleep(1) # 초당 5번 주문 가능
 
     def sell_stock(self, code, price, quantity):
@@ -475,9 +482,10 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매도", "0153", stock_account, 2, code, quantity, price, division, ""])
 
         try:
-            self.logger.info("코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
-            print("코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
+            self.logger.info("(매도 주문)코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
+            print("(매도 주문)코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
         except KeyError as e:
+            self.logger.error("(매도 주문) 오류 {}".format(e))
             print(e)
 
         # print("{} 매도".format(code))
