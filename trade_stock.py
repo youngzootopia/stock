@@ -20,7 +20,7 @@ class Trade_stock():
         
             stock['pred_fluctuation_rate'] = pred['pred_fluctuation_rate']
             stock['pred_close'] = pred['pred_close']
-            stock['order_quantity'] = 0
+            stock['buy_quantity'] = 0
             stock['buy_close'] = 0
             stock['available_quantity'] = 0
             stock['ror'] = 0.0
@@ -31,6 +31,7 @@ class Trade_stock():
         for balance_stock in self.Kiwoom.get_balance():
             if balance_stock['code'] in stock_dict: # 상승 종목에 잔고가 포함 되어 있을 수 있음
                 stock_dict[balance_stock['code']]['buy_close'] = balance_stock['buy_close']
+                stock_dict[balance_stock['code']]['buy_quantity'] = balance_stock['available_quantity'] # 매수 완료 건 표시 그렇지 않은 경우 잔고에 있었으나, 전량 매도한 건 매수 주문하게 됨
                 stock_dict[balance_stock['code']]['available_quantity'] = balance_stock['available_quantity']    
                 stock_dict[balance_stock['code']]['ror'] = balance_stock['ror']
             else: # 잔고에만 있는 종목의 경우
@@ -39,7 +40,7 @@ class Trade_stock():
 
                 stock['buy_close'] = balance_stock['buy_close']
                 stock['available_quantity'] = balance_stock['available_quantity']
-                stock['order_quantity'] = 0
+                stock['buy_quantity'] = 0
                 stock['condition'] = 0.0
                 stock['ror'] = balance_stock['ror']
                 stock['pred_fluctuation_rate'] = 100 # 잔고의 경우 예상등락률 없으므로 100%로 설정
