@@ -13,8 +13,11 @@ import trade_algorithm
 from teleBot import TeleBot
 
 class Kiwoom(QAxWidget):
-    def __init__(self): # QAxWidget 상속 받은 경우 오버라이딩 필요
+    def __init__(self, logger): # QAxWidget 상속 받은 경우 오버라이딩 필요
         super().__init__()
+
+        self.logger = logger
+        
         # 로그인 프로세스를 따로 띄웠으나, 계좌 비밀번호가 저장이 안돼 사용 X
         # 키움 증권 로그인 창이 뜨면, 비밀번호 입력 및 로그인할 프로세스
         # login_process = multiprocessing.Process(target = Login, name = "login process", args = "")
@@ -34,8 +37,6 @@ class Kiwoom(QAxWidget):
         self.order_list = self.get_order() # 체결리스트 가져오기 
         # 텔레그램 봇
         self.teleBot = TeleBot()
-        # 로깅
-        logging.basicConfig(filename='./log/' + datetime.today().strftime("%Y%m%d") + '.log', level = logging.DEBUG)
 
     # 키움 증권 로그인 API
     def _make_kiwoom_instance(self):
@@ -287,7 +288,7 @@ class Kiwoom(QAxWidget):
 
             
                     
-            logging.debug("{} {} {} {}".format(signed_at, s_code, fluctuation_rate, vp))
+            self.logger.debug("{} {} {} {}".format(signed_at, s_code, fluctuation_rate, vp))
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
             try:
@@ -311,7 +312,7 @@ class Kiwoom(QAxWidget):
                             break
 
                     if buy_quantity != -2: # 매수 완료 건 매수 안함 
-                        buy_quantity = trade_algorithm.get_buy_quantity(self.deposit, 100000, close, self.stock_dict[s_code], vp) # 10만원어치 구매
+                        buy_quantity = trade_algorithm.get_buy_quantity(self.deposit, 100000, close, self.stock_dict[s_code], vp, self.logger) # 10만원어치 구매
                         if buy_quantity != -1: # -1의 경우 예수금 부족 혹은 매수 가치 없음
                             self.stock_dict[s_code]['order_quantity'] = buy_quantity
                             self.deposit = self.deposit - (close * buy_quantity)
@@ -323,7 +324,7 @@ class Kiwoom(QAxWidget):
 
             # 잔고 매도
             try:
-                sell_quantity_rate, ror = trade_algorithm.get_sell_quantity_and_ror(close, self.stock_dict[s_code])
+                sell_quantity_rate, ror = trade_algorithm.get_sell_quantity_and_ror(close, self.stock_dict[s_code], self.logger)
 
                 if sell_quantity_rate == 0.0 and ror == 0:
                     pass # 매입가 없으므로 매도 안함
@@ -478,7 +479,7 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)", ["매도", "0153", stock_account, 2, code, quantity, price, division, ""])
 
         try:
-            logging.info("코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
+            self.logger.info("코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
             print("코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
         except KeyError as e:
             print(e)
