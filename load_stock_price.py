@@ -176,8 +176,9 @@ def stock_market_full_load(code, dateStr):
     return stock_price_list
 
 def report_close_pred(dateStr):
-    pred_kospi = Mongo.get_kospi_pred_close(dateStr)
-    TeleBot.report_message("{0} KOSPI 예측 보고서: {1}".format(dateStr, pred_kospi['pred_fluctuation_rate']))
+    pred_kospi = Mongo.get_market_pred_close(dateStr, 'KOSPI')
+    pred_kosdak = Mongo.get_market_pred_close(dateStr, 'KOSDAK')
+    TeleBot.report_message("{0} 증시 예측 보고서\nKOSPI : {1}\nKOSDAK: {2}".format(dateStr, pred_kospi['pred_fluctuation_rate'], pred_kosdak['pred_fluctuation_rate']))
 
     for pred in Mongo.get_pred_close(dateStr, 30):
         TeleBot.report_message("종목명: {0}\n예측 상승률: {1}\n예측 종가: {2}".format(Mongo.get_stock_name(pred['_id']['code']), pred['pred_fluctuation_rate'], round(pred['pred_close'])))
@@ -198,11 +199,11 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
 
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
-    dateStr = '20231129' # 특정날짜 적재 시 수정
+    # dateStr = '20231130' # 특정날짜 적재 시 수정
     #20231123 코스닥
     #20231124 코스닥
 
-    code = '610028' # 특정 코드부터 적재 할 시 수정
+    code = '' # 특정 코드부터 적재 할 시 수정
 
     daily_load(dateStr, code)       
     

@@ -206,12 +206,12 @@ class Mongo():
 
         return result
     
-    def get_kospi_pred_close(self, dateStr):
+    def get_market_pred_close(self, dateStr, code):
         coll = self.db["predict"]
 
         filter = {
             '_id.date': dateStr,
-            '_id.code': "KOSPI"
+            '_id.code': code
             }
         project = {
             'pred_close': 1,
