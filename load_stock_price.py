@@ -215,7 +215,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
 
     code = '' # 특정 코드부터 적재 할 시 수정
 
-    # daily_load(dateStr, code)       
+    daily_load(dateStr, code)       
     
     XKRX = xcals.get_calendar("XKRX")
     next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
