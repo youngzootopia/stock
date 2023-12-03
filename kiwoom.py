@@ -395,7 +395,12 @@ class Kiwoom(QAxWidget):
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10086_req", "opt10086", 0, "0006")
         self.tr_event_loop.exec_()
         # 어차피 내일 종가 예측할 것이기 때문에, 1초만 딜레이
-        sleep_time = 4 - ml_time
+
+        sleep_time = 0
+        if ml_time is None:
+            sleep_time = 4
+        else:
+            sleep_time = 4 - ml_time
         if sleep_time > 0:
             time.sleep(sleep_time)
 

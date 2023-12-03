@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import *
 from datetime import datetime
 from multipledispatch import dispatch
-import pandas as pd
+import pandas
 import sys
 import json
-import pandas
+import logging
 import exchange_calendars as xcals
 from kiwoom import Kiwoom
 from mongo import Mongo
@@ -186,7 +186,15 @@ def report_close_pred(dateStr):
 if __name__ == '__main__': # 중복 방지를 위해 사용
     # 키움 API 실행
     app = QApplication(sys.argv)
-    Kiwoom = Kiwoom()
+    # 로깅
+    log_path = './log/' + datetime.today().strftime("%Y%m%d") + '.log'
+    logger = logging.getLogger('logger')
+    logger.setLevel(logging.DEBUG)
+    file_handler = logging.FileHandler(log_path, encoding='utf-8')
+    formatter = logging.Formatter("[%(asctime)s][%(levelname)s][%(message)s]")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    Kiwoom = Kiwoom(logger)
     Mongo = Mongo()
     Ml_stock = Ml_stock()
     TeleBot = TeleBot()
@@ -199,11 +207,11 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
 
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
-    # dateStr = '20231130' # 특정날짜 적재 시 수정
+    dateStr = '20231201' # 특정날짜 적재 시 수정
     #20231123 코스닥
     #20231124 코스닥
 
-    code = '' # 특정 코드부터 적재 할 시 수정
+    code = '356680' # 특정 코드부터 적재 할 시 수정
 
     daily_load(dateStr, code)       
     
