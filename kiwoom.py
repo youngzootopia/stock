@@ -122,9 +122,14 @@ class Kiwoom(QAxWidget):
                 print("no price infomation")
             self.tr_data = total
 
-        elif rqname == "opt20006_req": # 코스피 일봉 정보 일괄로 가져오기
+        elif rqname == "opt20006_req": # 시장(코스피, 코스닥) 일봉 정보 일괄로 가져오기
             total = []
-            code = "KOSPI"
+            code = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "업종코드").strip()
+            if code == "001": # KOSPI
+                code = 'KOSPI'
+            elif code == "101": # KOSDAQ
+                code = 'KOSDAQ'
+
             for i in range(cnt):
                 date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "일자").strip()
 
@@ -411,7 +416,7 @@ class Kiwoom(QAxWidget):
         return total
     
     # 업종(코스피 가져오려고) 가격 정보 가져오기
-    def get_kospi_price(self, code, dateStr):
+    def get_market_price(self, code, dateStr):
         # 업종코드 = 001:종합(KOSPI), 002:대형주, 003:중형주, 004:소형주 101:종합(KOSDAQ), 201:KOSPI200, 302:KOSTAR, 701: KRX100 나머지 ※ 업종코드 참고
         self.dynamicCall("SetInputValue(QString, QString)", "업종코드", code)
         self.dynamicCall("SetInputValue(QString, QString)", "기준일자", dateStr)
@@ -426,9 +431,9 @@ class Kiwoom(QAxWidget):
                 self.isNext = False
 
         while self.isNext:
-            self.dynamicCall("SetInputValue(QString, QString)", "업종코드", "001" if code != "" else code)
-            # self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20231003")
-            self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt20006_req", "opt20006", 0, "0030")
+            self.dynamicCall("SetInputValue(QString, QString)", "업종코드", code)
+            self.dynamicCall("SetInputValue(QString, QString)", "기준일자", dateStr)
+            self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt20006_req", "opt20006", 2, "0030")
             self.tr_event_loop.exec_()
             total += self.tr_data
 
