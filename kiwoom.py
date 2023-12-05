@@ -236,8 +236,7 @@ class Kiwoom(QAxWidget):
 
                 if che > 0 and division == '2': # 매수 체결 시
                     self.stock_dict[code]['ror'] = 0.0 # 주문 체결 시 0으로 초기화 하여야 당일 매수/매도 가능함
-
-                    self.teleBot.report_message("{} 매수".format(name))
+                    self.teleBot.report_message("{} 매수 - {}(체결수량)/{}(주문수량), 미체결수량: {}, 매수가: {}".format(name, che, order, un_che, buy_close))
 
                 if che > 0 and division == '1': # 매도 체결 시
                     self.deposit = self.deposit + (che * price)
@@ -318,6 +317,7 @@ class Kiwoom(QAxWidget):
                      # 매수 체결 건이 아닌 경우 매수 알고리즘
                     if buy_quantity != -2:
                         buy_quantity = trade_algorithm.get_buy_quantity(self.deposit, 100000, close, self.stock_dict[s_code], vp, self.logger) # 10만원어치 구매
+                        
                         if buy_quantity != -1: # -1의 경우 예수금 부족 혹은 매수 가치 없음
                             self.stock_dict[s_code]['buy_quantity'] = buy_quantity # buy_quantity가 있는 경우 프로그램 실행 후 매수 주문 건
                             self.deposit = self.deposit - (close * buy_quantity)
@@ -445,6 +445,7 @@ class Kiwoom(QAxWidget):
         return total
     
     def buy_stock(self, code, price, quantity):
+
         stock_account = self.account_number
 
         price = 0 if price == "" else price
