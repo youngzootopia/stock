@@ -224,15 +224,19 @@ class Kiwoom(QAxWidget):
                 che = self.dynamicCall("GetChejanData(int)", "911").lstrip("+").lstrip("-") # 체결량
                 price = self.dynamicCall("GetChejanData(int)", "910").lstrip("+").lstrip("-") # 체결가
                 buy_close = self.dynamicCall("GetChejanData(int)", "910").lstrip("+").lstrip("-") # 매입단가
+                order = self.dynamicCall("GetChejanData(int)", "900").lstrip("+").lstrip("-") # 주문수량
 
-                if che.isdigit() and price.isdigit() and buy_close.isdigit():
+
+                if che.isdigit() and price.isdigit() and buy_close.isdigit() and order.isdigit():
                     che = int(che)
                     price = int(price)
                     buy_close = int(buy_close)
+                    order = int(order)
                 else:
                     che = 0
                     price = 0
                     buy_close = 0.0
+                    order = 0
 
                 if che > 0 and division == '2': # 매수 체결 시
                     self.stock_dict[code]['ror'] = 0.0 # 주문 체결 시 0으로 초기화 하여야 당일 매수/매도 가능함
@@ -309,8 +313,8 @@ class Kiwoom(QAxWidget):
                     # (미)체결 리스트 체크, 프로그램 재시작 시 이미 매수 주문 넣었던 건이면 매수 안함
                     for order in self.order_list:
                         if s_code == order[0] and order[7] == '매수' and int(order[9]) > 0: # 매수 체결량 0 보다 큰 경우 매수 안함
-                            self.logger.debug("(당일 매수 체결 종목){}".format(s_code))
-                            print("(당일 매수 체결 종목){}".format(s_code))
+                            # self.logger.debug("(당일 매수 체결 종목){} {}".format(s_code, self.stock_dict[s_code]['name']))
+                            # print("(당일 매수 체결 종목){} {}".format(s_code, self.stock_dict[s_code]['name']))
                             buy_quantity = -2 
                             break
 
