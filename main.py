@@ -6,9 +6,8 @@ import exchange_calendars as xcals
 from trade_stock import Trade_stock
 from kiwoom import Kiwoom
 
-
 if __name__ == '__main__': # 중복 방지를 위해 사용
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv)    
     # 로깅
     log_path = './log/' + datetime.today().strftime("%Y%m%d") + '.log'
     logger = logging.getLogger('logger')

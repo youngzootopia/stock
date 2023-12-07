@@ -25,6 +25,7 @@ class Trade_stock():
             stock['available_quantity'] = 0
             stock['ror'] = 0.0
             stock['condition'] = 0.0
+            stock['name'] = self.Mongo.get_stock_name(pred['_id']['code'])
             stock_dict[pred['_id']['code']] = stock
 
         # 잔고 
@@ -44,6 +45,7 @@ class Trade_stock():
                 stock['condition'] = 0.0
                 stock['ror'] = balance_stock['ror']
                 stock['pred_fluctuation_rate'] = 100 # 잔고의 경우 예상등락률 없으므로 100%로 설정
+                stock['name'] = self.Mongo.get_stock_name(balance_stock['code'])
                 stock_dict[balance_stock['code']] = stock
 
             # 잔고 수익률에 따라 바로 매도
@@ -51,7 +53,7 @@ class Trade_stock():
             sell_quantity = math.trunc(stock['available_quantity'] * sell_quantity_rate)
             
             if sell_quantity > 0:
-                self.logger.info("코드: {} ROR: {} 매도주문수량: {}".format(balance_stock['code'], ror, sell_quantity))
+                self.Kiwoom.logger.info("코드: {} ROR: {} 매도주문수량: {}".format(balance_stock['code'], ror, sell_quantity))
                 print("코드: {} ROR: {} 매도주문수량: {}".format(balance_stock['code'], ror, sell_quantity))
                 self.Kiwoom.sell_stock(balance_stock['code'], '', sell_quantity)
                 

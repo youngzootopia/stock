@@ -62,7 +62,7 @@ def daily_load(start_date, end_date, code):
                     if market_price['_id']['date'] == dateStr:
                         stock_price = market_price
             else:
-                stock_price = Kiwoom.get_day_price(stock_code, dateStr, ml_time)
+                stock_price = Kiwoom.get_day_서울1400price(stock_code, dateStr, ml_time)
 
                 # 신규 상장 주식의 경우 코드네임 저장
                 if Mongo.get_stock_name(stock_code) == "":
