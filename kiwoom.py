@@ -80,7 +80,7 @@ class Kiwoom(QAxWidget):
                 date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "일자").strip()
                 # print(date)
 
-                if date < '20200101' or date == datetime.now().strftime("%Y%m%d"):
+                if date < '20230101' or date == datetime.now().strftime("%Y%m%d"):
                     self.isNext = False
                     
                     continue
@@ -175,6 +175,7 @@ class Kiwoom(QAxWidget):
                 buy_close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "매입가").strip())
                 available_quantity = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "매매가능수량").strip())
                 ror = float(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "수익률(%)").strip())
+                close = int(self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "현재가").strip())
 
 
                 stock = {}
@@ -182,6 +183,7 @@ class Kiwoom(QAxWidget):
                 stock['buy_close'] = buy_close
                 stock['available_quantity'] = available_quantity
                 stock['ror'] =  ror
+                stock['close'] = close
                 total.append(stock)
             self.tr_data = total
 
@@ -377,7 +379,7 @@ class Kiwoom(QAxWidget):
     # 가격 정보 가져오기
     def get_price(self, code):
         self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
-        # self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20200101")
+        self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20231208")
         self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", "1")
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 0, "0020")
         self.tr_event_loop.exec_()
@@ -387,7 +389,7 @@ class Kiwoom(QAxWidget):
 
         while self.isNext:
             self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
-            # self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20200101")
+            self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20231208")
             self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", "1")
             self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 2, "0020")
             self.tr_event_loop.exec_()

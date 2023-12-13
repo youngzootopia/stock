@@ -49,7 +49,7 @@ class Trade_stock():
                 stock_dict[balance_stock['code']] = stock
 
             # 잔고 수익률에 따라 바로 매도
-            sell_quantity_rate, ror = trade_algorithm.get_sell_quantity_and_ror(stock['buy_close'], stock, self.Kiwoom.logger)            
+            sell_quantity_rate, ror = trade_algorithm.get_sell_quantity_and_ror(balance_stock['close'], stock_dict[balance_stock['code']], self.Kiwoom.logger)            
             sell_quantity = math.trunc(stock['available_quantity'] * sell_quantity_rate)
             
             if sell_quantity > 0:

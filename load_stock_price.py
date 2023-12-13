@@ -183,6 +183,7 @@ def report_close_pred(dateStr):
 
     message = ""
     for pred in Mongo.get_pred_close(dateStr, 30):
+        print(pred)
         message = message + "{0}\n상승률: {1}, 종가: {2}\n\n".format(Mongo.get_stock_name(pred['_id']['code']), pred['pred_fluctuation_rate'], round(pred['pred_close']))
         
     TeleBot.report_message(message)
@@ -211,7 +212,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
 
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
-    # dateStr = '20231201' # 특정날짜 적재 시 수정
+    # dateStr = '20231208' # 특정날짜 적재 시 수정
 
     code = '' # 특정 코드부터 적재 할 시 수정
 
