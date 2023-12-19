@@ -295,7 +295,7 @@ class Kiwoom(QAxWidget):
             accum_volume = abs(int(accum_volume))
             vp = float(self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결강도")))
 
-            # self.logger.debug("{} {} {} {}".format(signed_at, s_code, fluctuation_rate, vp))
+            self.logger.debug("{} {} {} {} {}".format(signed_at, s_code, self.stock_dict[s_code]['name'], fluctuation_rate, vp))
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
             try:
