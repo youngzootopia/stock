@@ -344,6 +344,9 @@ class Kiwoom(QAxWidget):
                         
                     elif sell_quantity_rate == 1.0: # 전량 매도 타이밍인 경우 매도 주문
                         self.sell_stock(s_code, '', self.stock_dict[s_code]['available_quantity'])
+                    else:
+                        self.logger.info("(매도 가능 수량 없음)코드: {}, ROR, 매도가능수량: {}, 현 수량: {}".format(s_code, self.stock_dict[s_code]['condition'], sell_quantity, self.stock_dict[s_code]['available_quantity']))
+                        print("(매도 가능 수량 없음)코드: {}, ROR, 매도가능수량: {}, 현 수량: {}".format(s_code, self.stock_dict[s_code]['condition'], sell_quantity, self.stock_dict[s_code]['available_quantity']))
                     
             except KeyError as e:
                 pass
