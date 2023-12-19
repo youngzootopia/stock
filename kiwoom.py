@@ -295,9 +295,7 @@ class Kiwoom(QAxWidget):
             accum_volume = abs(int(accum_volume))
             vp = float(self.dynamicCall("GetCommRealData(QString, int)", s_code, fid_codes.get_fid("체결강도")))
 
-            
-                    
-            self.logger.debug("{} {} {} {}".format(signed_at, s_code, fluctuation_rate, vp))
+            # self.logger.debug("{} {} {} {}".format(signed_at, s_code, fluctuation_rate, vp))
 
             self.universe_realtime_transaction_info.append([s_code, signed_at, fluctuation_rate, close, high, open, low, accum_volume])
             try:
@@ -502,7 +500,7 @@ class Kiwoom(QAxWidget):
             self.logger.info("(매도 주문)코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
             print("(매도 주문)코드: {}, ROR, 판매수량: {}".format(code, self.stock_dict[code]['condition'], math.trunc(quantity)))
         except KeyError as e:
-            self.logger.error("(매도 주문) 오류 {}".format(e))
+            self.logger.error("(매도 주문) 오류 {}".format(e.args))
             print(e)
 
         # print("{} 매도".format(code))

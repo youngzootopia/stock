@@ -180,7 +180,7 @@ class Mongo():
         filter = {
                 '_id.date': dateStr, 
                 'pred_fluctuation_rate': { # 5% 이상
-                    '$gt': 3,
+                    '$gt': 5,
                     '$lt': 30 # 정리 매매의 경우 기존 종가가 너무 높을 수 있기 때문에 예측값이 크게 나옴
                 },
                 'pred_close': {
