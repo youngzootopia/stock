@@ -208,7 +208,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # load_stock_code_and_name()
 
     # 2. 일괄 적재 kiwoom.py 에서 '20100101' 까지 데이터만 적재 하도록 작성
-    # full_load()
+   # full_load()
 
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")

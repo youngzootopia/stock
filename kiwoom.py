@@ -80,7 +80,7 @@ class Kiwoom(QAxWidget):
                 date = self.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, i, "일자").strip()
                 # print(date)
 
-                if date < '20230101' or date == datetime.now().strftime("%Y%m%d"):
+                if date < '20100101' or date == datetime.now().strftime("%Y%m%d"):
                     self.isNext = False
                     
                     continue
@@ -226,7 +226,8 @@ class Kiwoom(QAxWidget):
                 che = self.dynamicCall("GetChejanData(int)", "911").lstrip("+").lstrip("-") # 체결량
                 price = self.dynamicCall("GetChejanData(int)", "910").lstrip("+").lstrip("-") # 체결가
                 buy_close = self.dynamicCall("GetChejanData(int)", "910").lstrip("+").lstrip("-") # 매입단가
-                order = self.dynamicCall("GetChejanData(int)", "900").lstrip("+").lstrip("-") # 주문수량
+                order = self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("주문수량"))
+                un_che = self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("미체결수량"))
 
 
                 if che.isdigit() and price.isdigit() and buy_close.isdigit() and order.isdigit():
@@ -234,11 +235,13 @@ class Kiwoom(QAxWidget):
                     price = int(price)
                     buy_close = int(buy_close)
                     order = int(order)
+                    un_che = ind(un_che)
                 else:
                     che = 0
                     price = 0
                     buy_close = 0.0
                     order = 0
+                    un_che = 0
 
                 if che > 0 and division == '2': # 매수 체결 시
                     self.stock_dict[code]['ror'] = 0.0 # 주문 체결 시 0으로 초기화 하여야 당일 매수/매도 가능함
@@ -246,9 +249,6 @@ class Kiwoom(QAxWidget):
 
                 if che > 0 and division == '1': # 매도 체결 시
                     self.deposit = self.deposit + (che * price)
-
-                    order = int(self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("주문수량")))
-                    un_che = int(self.dynamicCall("GetChejanData(int)", fid_codes.get_fid("미체결수량")))
 
                     self.teleBot.report_message("{} 매도 - {}(체결수량)/{}(주문수량), 미체결수량: {}".format(name, che, order, un_che))
         except Exception as e:
@@ -379,7 +379,7 @@ class Kiwoom(QAxWidget):
     # 가격 정보 가져오기
     def get_price(self, code):
         self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
-        self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20231208")
+        self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20230101")
         self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", "1")
         self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 0, "0020")
         self.tr_event_loop.exec_()
@@ -389,7 +389,7 @@ class Kiwoom(QAxWidget):
 
         while self.isNext:
             self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
-            self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20231208")
+            self.dynamicCall("SetInputValue(QString, QString)", "기준일자", "20230101")
             self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", "1")
             self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 2, "0020")
             self.tr_event_loop.exec_()
