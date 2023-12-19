@@ -235,7 +235,7 @@ class Kiwoom(QAxWidget):
                     price = int(price)
                     buy_close = int(buy_close)
                     order = int(order)
-                    un_che = ind(un_che)
+                    un_che = int(un_che)
                 else:
                     che = 0
                     price = 0
