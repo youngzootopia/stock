@@ -11,7 +11,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # 로깅
     log_path = './log/' + datetime.today().strftime("%Y%m%d") + '.log'
     logger = logging.getLogger('logger')
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     file_handler = logging.FileHandler(log_path, encoding='utf-8')
     formatter = logging.Formatter("[%(asctime)s][%(levelname)s][%(message)s]")
     file_handler.setFormatter(formatter)
