@@ -20,10 +20,13 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     trade_stock = Trade_stock(kiwoom)
 
     dateStr = datetime.today().strftime("%Y%m%d")
-    XKRX = xcals.get_calendar("XKRX")
-    openDate = XKRX.session_open(dateStr).strftime("%Y%m%d")
-
-    trade_stock.register_real_stock_price(openDate, 30)
+    try:
+        XKRX = xcals.get_calendar("XKRX")
+        openDate = XKRX.session_open(dateStr).strftime("%Y%m%d")
+        trade_stock.register_real_stock_price(openDate, 30)
+    except Exception as e:
+        logger.error(e)
+        trade_stock.register_real_stock_price(dateStr, 30)
 
     app.exec_()
 

@@ -35,6 +35,7 @@ class Ml_stock():
         data = np.array(data)
         target = np.array(target)
 
+        '''
         rf_score, lr_score = 0, 0
         rf = RandomForestRegressor(oob_score = True)
         lr = LinearRegression()
@@ -47,15 +48,27 @@ class Ml_stock():
 
             if rf_score > 0.99 or lr_score > 0.99:
                 break
+        '''
+
+        rf_score = 0
+        rf = RandomForestRegressor(oob_score = True)
+        for i in range(5):
+            rf.fit(data, target)
+            rf_score = rf.oob_score_
+
+            if rf_score > 0.99:
+                break
 
         # 금일 종가
         new = df.iloc[-1]
 
         rf_pred = rf.predict([new])
-        lr_pred = lr.predict([new])
+        # lr_pred = lr.predict([new])
         # print("예측 종가: {}".format(pred[0], df.iloc[-1, 3]))
 
-        pred = (rf_pred[0] + lr_pred[0]) / 2
+        # pred = (rf_pred[0] + lr_pred[0]) / 2
+        pred = rf_pred[0]
+
 
         predict_price = {'name': self.Mongo.get_stock_name(stock_code)
                          , 'pred_close': pred

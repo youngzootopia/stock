@@ -97,7 +97,7 @@ def full_load():
     i = 0
     for code in code_list:
         i = i + 1
-        if code == "000020": # 000020 첫 주식
+        if code == "272910": # 000020 첫 주식
             isNext = False
 
         if isNext:
@@ -208,11 +208,11 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # load_stock_code_and_name()
 
     # 2. 일괄 적재 kiwoom.py 에서 '20100101' 까지 데이터만 적재 하도록 작성
-   # full_load()
+    # full_load()
 
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
-    # dateStr = '20231208' # 특정날짜 적재 시 수정
+    # dateStr = '20231222' # 특정날짜 적재 시 수정
 
     code = '' # 특정 코드부터 적재 할 시 수정
 
