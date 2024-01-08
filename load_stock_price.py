@@ -97,7 +97,7 @@ def full_load():
     i = 0
     for code in code_list:
         i = i + 1
-        if code == "272910": # 000020 첫 주식
+        if code == "000020": # 000020 첫 주식
             isNext = False
 
         if isNext:
@@ -207,7 +207,7 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
     # 1. 종목 코드(코스피, 코스닥) 네임 저장하기
     # load_stock_code_and_name()
 
-    # 2. 일괄 적재 kiwoom.py 에서 '20100101' 까지 데이터만 적재 하도록 작성
+    # 2. 일괄 적재 완료(240107)
     # full_load()
 
     # 2. 일 적재
