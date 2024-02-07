@@ -52,7 +52,7 @@ class Ml_stock():
 
         rf_score = 0
         rf = RandomForestRegressor(oob_score = True)
-        for i in range(5):
+        for i in range(3):
             rf.fit(data, target)
             rf_score = rf.oob_score_
 
