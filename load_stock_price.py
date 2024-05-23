@@ -63,6 +63,7 @@ def daily_load(start_date, end_date, code):
                         stock_price = market_price
             else:
                 stock_price = Kiwoom.get_day_price(stock_code, dateStr, ml_time)
+                # total = {'open': 0, 'high': 0, 'low': 0, 'close': 0, 'volume': 0 }
 
                 # 신규 상장 주식의 경우 코드네임 저장
                 if Mongo.get_stock_name(stock_code) == "":
@@ -212,13 +213,16 @@ if __name__ == '__main__': # 중복 방지를 위해 사용
 
     # 2. 일 적재
     dateStr = datetime.today().strftime("%Y%m%d")
-    dateStr = '20240207' # 특정날짜 적재 시 수정
+    dateStr = '20240522' # 특정날짜 적재 시 수정
 
-    # code = '424960' # 특정 코드부터 적재 할 시 수정
-    code = '435620' # 특정 코드부터 적재 할 시 수정
+    code = '003380' # 특정 코드부터 적재 할 시 수정
 
+    daily_load(dateStr, code)
+    # daily_load('20240509', '20240510', code)   
+     
 
-    daily_load(dateStr, code)       
+    # 휴일인 경우 데이터 삭제
+    delete_closed_data(dateStr)    
     
     XKRX = xcals.get_calendar("XKRX")
     next_open = XKRX.next_open(dateStr).strftime("%Y%m%d")
