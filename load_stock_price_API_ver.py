@@ -2,9 +2,7 @@ import pandas
 import time
 from pykrx import stock
 from mysql import MySql
-# from ml_stock import Ml_stock
-# from teleBot import TeleBot
-# from datetime import datetime
+from datetime import datetime
 
 def daily_load(start_date):
     # 적재 Start
@@ -76,5 +74,8 @@ def periodical_load(start_date, end_date):
 
 
 ## 실행
-# daily_load('20240527')
-periodical_load('20000101', '20240526')
+# 당일 적재
+daily_load(datetime.today().strftime('%Y%m%d'))
+
+# 기간 적재
+# periodical_load('20000101', '20240526')
