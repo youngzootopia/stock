@@ -38,7 +38,7 @@ def daily_load(start_date):
     mysql.close()
 
 
-def periodical_load(start_date, end_date):
+def periodical_load(start_date, end_date, start_ticker):
     mysql = MySql()
 
     # KOSPI + KOSDAQ
@@ -47,8 +47,14 @@ def periodical_load(start_date, end_date):
     ticker_list_length = len(ticker_list)
     ticker_count = 0
 
+    flag = False if start_ticker == '' else True
 
     for ticker in ticker_list:
+        if flag:
+            ticker_count += 1
+            flag = False if start_ticker == ticker else True
+            continue
+
         price = stock.get_market_ohlcv(start_date, end_date, ticker)
 
         # NaN 있을 수 있어서 이 경우 0
@@ -64,7 +70,7 @@ def periodical_load(start_date, end_date):
         price['ticker'] = ticker
 
         # print(price)
-        time.sleep(1)
+        time.sleep(5)
         mysql.insert_daily(price)
 
         ticker_count += 1
@@ -78,4 +84,4 @@ def periodical_load(start_date, end_date):
 daily_load(datetime.today().strftime('%Y%m%d'))
 
 # 기간 적재
-# periodical_load('20000101', '20240526')
+# periodical_load('20000101', '20240526', '091700')
