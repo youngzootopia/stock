@@ -35,7 +35,6 @@ def daily_load(start_date):
 
     mysql = MySql()
     mysql.insert_daily(df)
-    mysql.close()
 
 
 def periodical_load(start_date, end_date, start_ticker):
@@ -75,8 +74,6 @@ def periodical_load(start_date, end_date, start_ticker):
 
         ticker_count += 1
         print("{}: {} / {} = {}".format(ticker, ticker_count, ticker_list_length, ticker_count / ticker_list_length * 100))
-
-    mysql.close()
 
 
 ## 실행
