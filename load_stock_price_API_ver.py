@@ -81,4 +81,4 @@ def periodical_load(start_date, end_date, start_ticker):
 daily_load(datetime.today().strftime('%Y%m%d'))
 
 # 기간 적재
-# periodical_load('20000101', '20240526', '091700')
+# periodical_load('20240705', '20240719', '')

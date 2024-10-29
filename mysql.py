@@ -47,9 +47,10 @@ class MySql():
         """
         # MySQL 쿼리
         query = """
-        SELECT A.TICKER, A.HIGH, A.LOW, (A.HIGH - A.LOW) / A.CLOSE * 100 AS VOLATILITY
+        SELECT A.TICKER, (A.HIGH - A.LOW) / A.CLOSE * 100 AS VOLATILITY
         FROM PRICE A
         WHERE A.DATE = %s
+        AND (A.HIGH - A.LOW) / A.CLOSE * 100 BETWEEN 10.0 AND 99.9
         ORDER BY VOLATILITY DESC
         LIMIT %s
         """
@@ -60,7 +61,7 @@ class MySql():
             with self.client.cursor() as cursor:
                 cursor.execute(query, (query_date, query_limit))
                 result = cursor.fetchall()
-                df = pd.DataFrame(result, columns=['TICKER', 'HIGH', 'LOW', 'VOLATILITY'])
+                df = pd.DataFrame(result, columns=['TICKER', 'VOLATILITY'])
                 return df
         except pymysql.MySQLError as e:
             print(f"Error: {e}")
